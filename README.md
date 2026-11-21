@@ -15,6 +15,12 @@ instances over one shared data store, offline accounts, and a page that runs
 ## Download
 
 **[Trenchlight 0.5.0 — Windows x64 (6.4 MB)](https://github.com/LaziestBe/TrenchLight/releases/latest)**
+— or click **Releases** in the sidebar on the right of this page and take the
+`.zip` from there.
+
+> **Not the green `Code` button.** That one downloads the *source*; you would
+> need Rust to turn it into a program. The ready-to-run launcher only exists
+> under **Releases**.
 
 Unzip it anywhere and double-click `trenchlight.exe`. No Rust needed. The zip
 holds the three binaries below and nothing else; state is written to

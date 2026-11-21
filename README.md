@@ -1,8 +1,13 @@
 # Trenchlight
 
-A Minecraft: Java Edition launcher for Windows, written in Rust. Isolated
+**A Minecraft: Java Edition launcher for Windows, written in Rust.** Isolated
 instances over one shared data store, offline accounts, and a page that runs
 **Horizon** — a Rust/wgpu client that needs no Microsoft account.
+
+[![CI](https://img.shields.io/github/actions/workflow/status/LaziestBe/TrenchLight/ci.yml?style=flat-square&label=ci&labelColor=0B222F&color=3AC9CF)](https://github.com/LaziestBe/TrenchLight/actions/workflows/ci.yml)
+[![License](https://img.shields.io/badge/license-MIT-3AC9CF?style=flat-square&labelColor=0B222F)](LICENSE)
+[![Platform](https://img.shields.io/badge/platform-Windows%2010%20%7C%2011-3AC9CF?style=flat-square&labelColor=0B222F)](#requirements)
+[![Rust](https://img.shields.io/badge/rust-stable-3AC9CF?style=flat-square&labelColor=0B222F)](https://www.rust-lang.org)
 
 ![The Trenchlight menu](docs/screenshots/menu.png)
 

@@ -8,8 +8,20 @@ instances over one shared data store, offline accounts, and a page that runs
 [![License](https://img.shields.io/badge/license-MIT-3AC9CF?style=flat-square&labelColor=0B222F)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Windows%2010%20%7C%2011-3AC9CF?style=flat-square&labelColor=0B222F)](#requirements)
 [![Rust](https://img.shields.io/badge/rust-stable-3AC9CF?style=flat-square&labelColor=0B222F)](https://www.rust-lang.org)
+[![Download](https://img.shields.io/badge/download-0.5.0%20for%20Windows-3AC9CF?style=flat-square&labelColor=0B222F)](https://github.com/LaziestBe/TrenchLight/releases/latest)
 
 ![The Trenchlight menu](docs/screenshots/menu.png)
+
+## Download
+
+**[Trenchlight 0.5.0 — Windows x64 (6.4 MB)](https://github.com/LaziestBe/TrenchLight/releases/latest)**
+
+Unzip it anywhere and double-click `trenchlight.exe`. No Rust needed. Windows
+may warn that the exe is unsigned — **More info → Run anyway**. The zip holds
+the three binaries below and nothing else; state is written to `%APPDATA%\mcl`,
+never next to the exes.
+
+To build it yourself instead, keep reading.
 
 Three binaries come out of the same workspace:
 

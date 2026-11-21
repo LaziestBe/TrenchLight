@@ -18,6 +18,36 @@ launcher**. This document records how it works, what it refuses to do, and the
 - All Horizon builds share one game folder (`instances/horizon`). A new nightly
   must not hide yesterday's world.
 
+## Which Minecraft version
+
+Horizon is not version-flexible. Each build pins **one** Minecraft version in
+`research-lock.json` inside its own folder, and `horizon-prepare` refuses
+anything else. There is no version picker, on this page or in Horizon.
+
+Measured 2026-11-21:
+
+| | |
+| --- | --- |
+| Version pinned by the current builds | **26.3** |
+| Java major that version requires | **25** |
+| `client_sha1` / `server_sha1` | in the same `research-lock.json` |
+| Asset index | one of eight accepted SHA-1s — Mojang republished 26.3 with different translation indexes, and only `assetIndex` differs |
+
+Where the game comes from:
+
+- `horizon-prepare` **never downloads Minecraft.** It converts an existing
+  install into Horizon's resources.
+- The folder is found automatically: `dirs::data_dir()\.minecraft`, i.e.
+  `%APPDATA%\.minecraft`. There is no setting and no path to type.
+- If that folder is absent the page stops with *"no official Minecraft folder
+  found; Horizon needs one to import from"*.
+- The one file it will not fetch itself — the pinned `server.jar` — is downloaded
+  from `piston-data.mojang.com` and checked against `server_sha1` before use.
+
+Horizon's own README says the same thing: install 26.3 and start it once. So a
+machine that has never run 26.3 cannot prepare, no matter which launcher put the
+files there.
+
 ## Layout
 
 ```

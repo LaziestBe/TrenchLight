@@ -145,6 +145,30 @@ Worlds can be listed, backed up, restored, screenshotted and deleted. All
 Horizon builds share one game folder on purpose, so a new nightly never hides
 yesterday's world.
 
+### Which Minecraft version Horizon runs
+
+**One version at a time — not a range.** Each Horizon build pins a single
+Minecraft version in its own `research-lock.json`, and its preparer refuses
+anything else.
+
+| | |
+| --- | --- |
+| Version the current Horizon builds pin | **26.3** |
+| Java that version needs | **25** |
+| Where the pin lives | `research-lock.json` in the installed build folder |
+
+So before **Prepare** will work, that exact version has to exist in the normal
+`%APPDATA%\.minecraft`, installed once and started once:
+
+- with the official Minecraft launcher — install 26.3, press Play once; or
+- with this launcher — point **Settings → Shared store** at
+  `%APPDATA%\.minecraft`, install 26.3 there, and launch it once.
+
+The launcher finds that folder automatically; there is no path to type. If it is
+missing you get *"no official Minecraft folder found"*. When a future Horizon
+build pins a different version, that version is what it will want — the pin is
+the build's, never yours to choose.
+
 ![The Horizon page](docs/screenshots/horizon.png)
 
 `horizon-ctl` has quirks the page papers over: `worlds` only answers while a

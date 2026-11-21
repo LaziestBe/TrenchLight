@@ -1,6 +1,6 @@
 # The Horizon page
 
-The Horizon page runs [Horizon](https://github.com/horizon-client/horizon) — a
+The Horizon page runs [Horizon](https://github.com/horizon-rust/horizon) - a
 Rust/wgpu Minecraft client — with **no Microsoft account and no Horizon
 launcher**. This document records how it works, what it refuses to do, and the
 `horizon-ctl` behaviour it has to work around.

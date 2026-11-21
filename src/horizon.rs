@@ -2314,7 +2314,7 @@ mod tests {
             game_dir: PathBuf::from(r"C:\h\instances\horizon"),
             home: PathBuf::from(r"C:\h\instances\horizon\home"),
             world: "New World".into(),
-            name: "LaziestBee".into(),
+            name: "TestPlayer".into(),
         };
         let command = plan.command();
         let args: Vec<String> = command
@@ -2331,7 +2331,7 @@ mod tests {
         assert_eq!(args[0], "launch");
         assert!(args.contains(&"--wait".to_string()), "--wait is the running signal");
         assert_eq!(at("--world"), "New World");
-        assert_eq!(at("--name"), "LaziestBee");
+        assert_eq!(at("--name"), "TestPlayer");
         assert_eq!(at("--game"), r"C:\h\build\horizon-client.exe");
         assert_eq!(at("--resources"), r"C:\h\resources\nightly");
         assert_eq!(at("--game-dir"), r"C:\h\instances\horizon");

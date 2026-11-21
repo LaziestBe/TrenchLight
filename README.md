@@ -16,10 +16,31 @@ instances over one shared data store, offline accounts, and a page that runs
 
 **[Trenchlight 0.5.0 — Windows x64 (6.4 MB)](https://github.com/LaziestBe/TrenchLight/releases/latest)**
 
-Unzip it anywhere and double-click `trenchlight.exe`. No Rust needed. Windows
-may warn that the exe is unsigned — **More info → Run anyway**. The zip holds
-the three binaries below and nothing else; state is written to `%APPDATA%\mcl`,
-never next to the exes.
+Unzip it anywhere and double-click `trenchlight.exe`. No Rust needed. The zip
+holds the three binaries below and nothing else; state is written to
+`%APPDATA%\mcl`, never next to the exes.
+
+> ### ⚠ Windows will warn you — that is expected
+>
+> The exes are **not code-signed**, so the first time you run one, Windows shows
+> **"Windows protected your PC"** (SmartScreen), or **"Windows cannot verify the
+> publisher"** if you go through Properties → Unblock. Every unsigned program
+> gets this, including many well-known open-source tools. It is a warning about
+> the missing certificate, **not** a virus detection.
+>
+> To run it:
+>
+> 1. Click **More info** on the blue box.
+> 2. Click **Run anyway**.
+>
+> Expect it **once per exe** — `trenchlight.exe`, `mcl.exe`, `mcl-world.exe` —
+> and again after each update, because every new build is a new unsigned file.
+> SmartScreen's "unknown app" reputation is earned by a file being downloaded
+> often; a fresh release has none, so the warning is loudest on day one.
+>
+> **If you would rather not run an unknown binary at all:** all the source is in
+> this repo. Clone it and run `cargo build --release --workspace`; you get the
+> same three programs, compiled on your own machine.
 
 To build it yourself instead, keep reading.
 

@@ -1,0 +1,24 @@
+# Build output and anything the linker leaves behind.
+/target
+
+# Binaries: build them, never commit them.
+*.exe
+*.dll
+*.pdb
+*.lib
+*.exp
+*.obj
+*.res
+
+# WebView2 writes its cache next to the exe.
+*.WebView2/
+
+# Editors and OS.
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Cargo backups.
+*.bak

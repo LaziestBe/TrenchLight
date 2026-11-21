@@ -1,0 +1,34 @@
+[package]
+name = "mcl-world"
+version = "0.1.0"
+edition = "2021"
+description = "Native 3D viewer for mcl worlds: draws an existing save with wgpu, no Java and no account"
+license = "MIT"
+
+[[bin]]
+name = "mcl-world"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1"
+bytemuck = "1"
+# Blocks on wgpu's async adapter/device requests; stage 0 has no async runtime.
+pollster = "0.4"
+wgpu = "27"
+winit = "0.30"
+# Region chunks are zlib (occasionally gzip) compressed. Already compiled in
+# this workspace through the launcher's `zip` dependency, so it costs nothing.
+flate2 = "1"
+# Reading assets out of `26.3.jar`. Same `zip` crate the launcher uses for
+# modpack import, so it is already in the dependency graph.
+zip = { version = "2", default-features = false, features = ["deflate"] }
+# Block textures are tiny PNGs; the crate handles grayscale, palette and tRNS.
+png = "0.17"
+
+# Deliberately NOT a dependency on the `mcl` crate: since stage 1 the viewer is
+# told where the save and the jar are (`--save`, `--jar`), and depending on the
+# launcher dragged `wry`/`tao`/`rfd` into every viewer build for exactly zero
+# used code. Dropping it turns `cargo build -p mcl-world` into a viewer-only
+# build instead of a full launcher rebuild.
+
+# Profiles live in the workspace root manifest, not here.

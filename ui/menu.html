@@ -1,0 +1,2261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Trenchlight</title>
+<style>
+{{FONTS}}
+
+:root{
+  --abyss-000:#04101B; --abyss-100:#05121F; --abyss-200:#071826; --abyss-300:#0B222F;
+  --abyss-400:#153340; --abyss-500:#17414D; --teal-500:#2E7783; --teal-400:#3AC9CF;
+  --teal-300:#67EEE9; --teal-200:#7FF3EE; --ice-100:#F2FDFF; --ice-300:#B6D6DC;
+  --ice-500:#9FC4CC; --ice-700:#6F97A3; --ink:#04151C; --alert:#E2705A; --warn:#E0B063;
+  --hair:#233F4C; --line:#1B3A46;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--abyss-000)}
+body{
+  font:400 13px/1.5 'Inter',system-ui,sans-serif;color:var(--ice-300);
+  font-variant-numeric:tabular-nums;cursor:default;user-select:none;
+  -webkit-font-smoothing:antialiased;
+}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:default;outline:none}
+svg{display:block}
+
+/* ── window ─────────────────────────────────────────────── */
+.win{
+  position:relative;width:1048px;height:655px;overflow:hidden;
+  background:linear-gradient(180deg,var(--abyss-000) 0%,#092536 55%,var(--abyss-100) 100%);
+}
+.shafts{position:absolute;inset:0;filter:blur(9px);pointer-events:none}
+.mark{
+  position:absolute;left:-20px;top:50px;pointer-events:none;white-space:nowrap;
+  font:800 260px/1 'Poppins',sans-serif;letter-spacing:-.02em;color:rgba(242,253,255,.025);
+}
+.pt{position:absolute;border-radius:50%;background:var(--teal-200);pointer-events:none;
+    animation:drift 9s ease-in-out infinite alternate}
+@keyframes drift{from{transform:translateY(0)}to{transform:translateY(-9px)}}
+.floor{position:absolute;left:0;bottom:0;pointer-events:none}
+.vig{position:absolute;inset:0;pointer-events:none;
+     background:radial-gradient(ellipse at 50% 50%,rgba(0,0,0,0) 55%,rgba(0,0,0,.55) 100%)}
+
+/* ── top bar ────────────────────────────────────────────── */
+.top{position:absolute;left:29px;top:15px;right:29px;height:26px;display:flex;align-items:center;gap:10px;z-index:30}
+.brand{display:flex;align-items:center;gap:9px;pointer-events:none}
+.brand b{font:700 14px/1 'Inter',sans-serif;letter-spacing:-.01em;color:var(--ice-100)}
+.nav{height:26px;display:flex;align-items:center;gap:26px;margin-left:26px}
+.nav button{position:relative;display:flex;align-items:center;height:26px;
+  font:500 13.5px/1 'Inter',sans-serif;color:var(--ice-300);padding:0;transition:color .15s}
+.nav button:hover{color:var(--ice-100)}
+.nav button.on{color:var(--ice-100);font-weight:600}
+.nav button.on::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;
+  border-radius:2px;background:var(--teal-200)}
+.spacer{flex:1}
+.pill{
+  display:flex;align-items:center;gap:8px;height:28px;padding:0 10px 0 5px;
+  border:1px solid var(--line);border-radius:999px;background:var(--abyss-200);
+  transition:border-color .15s,background .15s;
+}
+.pill:hover{border-color:var(--teal-500);background:#0A1F2E}
+.avatar{width:20px;height:20px;border-radius:50%;flex:0 0 auto;
+  background:radial-gradient(circle at 35% 30%,#7FF3EE,#2E7783 70%,#17414D);
+  box-shadow:0 0 8px rgba(127,243,238,.35)}
+.pill .who{font:600 12.5px/1 'Inter',sans-serif;color:var(--ice-100)}
+.pill .kind{font:400 11.5px/1 'Inter',sans-serif;color:var(--ice-700);margin-left:2px}
+.wc{display:flex;align-items:center;gap:2px;margin-left:2px}
+.wc button{width:24px;height:24px;border-radius:7px;display:grid;place-items:center;color:var(--ice-500)}
+.wc button:hover{background:rgba(255,255,255,.07);color:var(--ice-100)}
+.wc button.close:hover{background:rgba(226,112,90,.85);color:#fff}
+
+/* ── hero ───────────────────────────────────────────────── */
+.hero{position:absolute;left:29px;top:85px;right:280px}
+h1{margin:0;font:800 72px/.95 'Poppins',sans-serif;letter-spacing:-.02em;color:var(--ice-100)}
+.sub{margin:14px 0 0;font:italic 400 15px/1.4 'Inter',sans-serif;color:var(--ice-300);max-width:560px}
+.tags{display:flex;gap:8px;margin-top:19px;height:22px;align-items:center}
+.tag{
+  height:22px;display:inline-flex;align-items:center;gap:6px;padding:0 10px;
+  border:1px solid var(--line);border-radius:999px;background:var(--abyss-200);
+  font:500 11px/1 'Inter',sans-serif;color:var(--ice-300);white-space:nowrap;
+}
+.tag i{width:5px;height:5px;border-radius:50%;background:var(--teal-300)}
+.tag.dim i{background:var(--ice-700)}
+
+.actions{position:absolute;left:29px;top:268px;display:flex;align-items:center;gap:10px}
+.play{
+  display:inline-flex;align-items:center;justify-content:center;gap:9px;
+  width:121px;height:48px;border-radius:999px;
+  background:linear-gradient(90deg,#60E9E6,#34C4CC);color:var(--ink);
+  font:700 15px/1 'Inter',sans-serif;
+  box-shadow:0 0 24px rgba(58,201,207,.35);
+  transition:filter .15s,box-shadow .2s;
+}
+.play:hover{filter:brightness(1.06);box-shadow:0 0 30px rgba(58,201,207,.5)}
+.play:active{transform:translateY(1px)}
+.play:disabled{filter:saturate(.4) brightness(.8);box-shadow:none}
+.pick{
+  display:inline-flex;align-items:center;gap:8px;height:30px;padding:0 11px;min-width:120px;
+  border:1px solid var(--hair);border-radius:999px;
+  font:600 12.5px/1 'Inter',sans-serif;color:var(--ice-100);
+}
+.pick:hover{border-color:var(--teal-500);background:rgba(23,65,77,.35)}
+.pick span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:96px}
+.ib{
+  width:32px;height:32px;border:1px solid var(--hair);border-radius:12px;
+  display:grid;place-items:center;color:var(--ice-500);
+  transition:color .15s,border-color .15s,background .15s;
+}
+.ib:hover{color:var(--ice-100);border-color:var(--teal-500);background:rgba(23,65,77,.35)}
+
+/* ── bottom cards ───────────────────────────────────────── */
+.cards{position:absolute;left:29px;top:498px;display:flex;gap:13px}
+.card{
+  height:135px;border-radius:16px;padding:16px 17px;overflow:hidden;
+  background:linear-gradient(180deg,rgba(11,34,47,.92),rgba(8,25,36,.86));
+  border:1px solid var(--abyss-400);
+  box-shadow:inset 0 1px 0 rgba(127,243,238,.06);
+}
+.card.a{width:275px} .card.b{width:220px} .card.c{width:220px}
+.lbl{font:600 10px/1.2 'Inter',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--ice-500)}
+.chead{display:flex;justify-content:space-between;align-items:center}
+.more{font:600 10px/1 'Inter',sans-serif;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--ice-500);transition:color .15s}
+.more:hover{color:var(--teal-200)}
+.card .when{margin-top:9px;font:600 9.5px/1 'Inter',sans-serif;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--teal-200)}
+.card .head{margin-top:6px;font:600 13px/1.3 'Inter',sans-serif;color:var(--ice-100)}
+.card .body{margin-top:5px;font:400 11.5px/1.45 'Inter',sans-serif;color:var(--ice-500)}
+.mono-row{display:flex;justify-content:space-between;gap:8px;margin-top:9px;font:400 12px/1 'Inter',sans-serif;color:var(--ice-300)}
+.mono-row b{font-weight:600;color:var(--ice-100);font-variant-numeric:tabular-nums}
+.mono-row.dim{color:var(--ice-700)}
+
+/* ── rail ───────────────────────────────────────────────── */
+.rail{
+  position:absolute;left:798px;top:67px;width:226px;height:566px;border-radius:20px;
+  padding:20px 18px 14px;display:flex;flex-direction:column;
+  background:linear-gradient(180deg,rgba(11,34,47,.92),rgba(8,25,36,.86));
+  border:1px solid var(--abyss-400);
+  box-shadow:inset 0 1px 0 rgba(127,243,238,.06);
+}
+.rows{position:relative;margin-top:14px;flex:1}
+.rows::before{content:"";position:absolute;left:3px;top:10px;bottom:0;width:1px;background:#1E4753}
+.row{
+  position:relative;display:flex;gap:11px;align-items:flex-start;
+  padding:8px 9px 8px 0;border-radius:10px;border:1px solid transparent;
+  transition:background .12s,border-color .12s;
+}
+.row:hover{background:rgba(23,65,77,.35)}
+.row.sel{background:rgba(23,65,77,.55);border-color:var(--teal-500)}
+.node{
+  position:relative;z-index:1;flex:0 0 auto;width:7px;height:7px;margin-top:5px;border-radius:50%;
+  background:var(--abyss-200);border:1px solid var(--teal-500);
+}
+.row.sel .node{width:8px;height:8px;background:var(--teal-200);border:0;box-shadow:0 0 6px 2px rgba(127,243,238,.5)}
+.row.gone .node{border-color:var(--alert)}
+.row .nm{font:600 12.5px/1.25 'Inter',sans-serif;color:var(--ice-100);
+  max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .st{margin-top:3px;font:400 10.5px/1.2 'Inter',sans-serif;color:var(--ice-500);
+  max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row.gone .st{color:var(--alert)}
+.row .kill{
+  position:absolute;right:4px;top:50%;transform:translateY(-50%);
+  width:20px;height:20px;border-radius:7px;display:grid;place-items:center;
+  font:600 13px/1 'Inter',sans-serif;color:var(--ice-700);
+  opacity:0;transition:opacity .12s,color .12s,background .12s;
+}
+.row:hover .kill{opacity:1}
+.row .kill:hover{color:var(--alert);background:rgba(226,112,90,.14)}
+.add{display:flex;align-items:center;gap:8px;margin-top:6px;padding:7px 0;
+  font:500 12px/1 'Inter',sans-serif;color:var(--ice-300)}
+.add:hover{color:var(--ice-100)}
+.upd{
+  margin-top:auto;border:1px solid var(--line);border-radius:12px;padding:11px 12px;
+  background:rgba(7,24,38,.6);
+}
+.upd .v{font:600 12px/1 'Inter',sans-serif;color:var(--ice-100)}
+.upd .t{margin-top:5px;font:400 11.5px/1.3 'Inter',sans-serif;color:var(--ice-500)}
+.upd button{margin-top:9px;height:26px;padding:0 12px;border:1px solid var(--hair);
+  border-radius:999px;font:600 11.5px/1 'Inter',sans-serif;color:var(--ice-300)}
+.upd button:hover{border-color:var(--teal-500);color:var(--ice-100)}
+.foot{margin-top:11px;text-align:right;font:400 10.5px/1 'Inter',sans-serif;color:var(--ice-700)}
+
+/* ── launch overlay ─────────────────────────────────────── */
+.scrim{
+  position:absolute;inset:0;background:rgba(3,10,16,.72);backdrop-filter:blur(5px);
+  display:none;place-items:center;z-index:20;
+}
+.scrim.on{display:grid}
+.box{
+  position:relative;
+  width:420px;height:120px;border-radius:18px;padding:20px 22px;
+  background:linear-gradient(180deg,rgba(11,34,47,.96),rgba(8,25,36,.94));
+  border:1px solid var(--teal-500);box-shadow:0 24px 60px rgba(0,0,0,.5);
+}
+.box .t{font:600 15px/1 'Inter',sans-serif;color:var(--ice-100)}
+.box .t span{color:var(--ice-500);font-weight:400}
+.box .s{margin-top:8px;font:400 12px/1.3 'Inter',sans-serif;color:var(--ice-300);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar{position:relative;margin-top:16px;height:4px;border-radius:999px;background:#0E2A36;overflow:hidden}
+.bar i{position:absolute;top:0;left:0;height:4px;width:38%;border-radius:999px;
+  background:linear-gradient(90deg,#34C4CC,#7FF3EE);animation:sweep 1.35s ease-in-out infinite}
+@keyframes sweep{0%{left:-40%}100%{left:100%}}
+.box .cancel{position:absolute;right:16px;top:14px;font:500 11.5px/1 'Inter',sans-serif;color:var(--ice-500)}
+.box .cancel:hover{color:var(--ice-100)}
+
+/* ── in-game card: the session lives in Rust, the page just reports it ── */
+.live{position:absolute;inset:41px 0 0 0;background:rgba(3,10,16,.72);backdrop-filter:blur(5px);
+  display:none;place-items:center;z-index:18}
+.live.on{display:grid}
+.livecard{width:430px;border-radius:18px;padding:20px 22px;
+  background:linear-gradient(180deg,rgba(11,34,47,.96),rgba(8,25,36,.94));
+  border:1px solid var(--teal-500);box-shadow:0 24px 60px rgba(0,0,0,.5)}
+.lhead{display:flex;align-items:center;gap:11px}
+.livecard .dot{width:9px;height:9px;border-radius:50%;background:var(--teal-200);
+  box-shadow:0 0 0 4px rgba(58,201,207,.16);animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 7px rgba(58,201,207,.05)}}
+.livecard .n{font:600 15px/1 'Inter',sans-serif;color:var(--ice-100)}
+.livecard .clock{margin-left:auto;font:500 12px/1 ui-monospace,'Consolas',monospace;color:var(--ice-300)}
+.livecard .m{margin-top:9px;font:400 12px/1.35 'Inter',sans-serif;color:var(--ice-500)}
+.livecard .acts{margin-top:17px;display:flex;gap:9px;justify-content:flex-end}
+
+/* ── failure card ───────────────────────────────────────── */
+.failscreen{position:absolute;inset:0;background:rgba(3,10,16,.72);backdrop-filter:blur(3px);
+  display:none;z-index:25}
+.failscreen.on{display:block}
+.fail{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:520px;border-radius:16px;padding:22px 24px;display:none;z-index:30;
+  background:linear-gradient(180deg,rgba(11,34,47,.98),rgba(8,25,36,.97));
+  border:1px solid var(--abyss-400);box-shadow:0 24px 60px rgba(0,0,0,.55);
+}
+.fail.on{display:block}
+.fail h2{margin:0;font:700 24px/1.2 'Poppins',sans-serif;color:var(--ice-100)}
+.fail p{margin:10px 0 0;font:400 12.5px/1.55 'Inter',sans-serif;color:var(--ice-300)}
+.fail pre{
+  margin:14px 0 0;padding:11px 13px;max-height:104px;overflow:hidden;white-space:pre-wrap;
+  border-left:3px solid var(--alert);border-radius:0 8px 8px 0;background:var(--abyss-200);
+  font:400 11px/1.5 'Consolas',monospace;color:var(--ice-500);
+}
+.fail .acts{display:flex;gap:8px;margin-top:16px;justify-content:flex-end}
+.ghost{height:32px;padding:0 14px;border:1px solid var(--hair);border-radius:999px;
+  font:600 12px/1 'Inter',sans-serif;color:var(--ice-300)}
+.ghost:hover{border-color:var(--teal-500);color:var(--ice-100)}
+
+/* ── dialogs (new installation, confirm) ────────────────── */
+.sheet{position:absolute;inset:0;background:rgba(3,10,16,.72);backdrop-filter:blur(3px);
+  display:none;z-index:34}
+.sheet.on{display:block}
+.dlg{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:480px;border-radius:16px;padding:22px 24px;display:none;z-index:35;
+  background:linear-gradient(180deg,rgba(11,34,47,.99),rgba(8,25,36,.98));
+  border:1px solid var(--abyss-400);box-shadow:0 24px 60px rgba(0,0,0,.6);
+}
+.dlg.on{display:block}
+.dlg.small{width:404px}
+.dlg h2{margin:0;font:700 22px/1.2 'Poppins',sans-serif;color:var(--ice-100)}
+.dlg p{margin:9px 0 0;font:400 12.5px/1.55 'Inter',sans-serif;color:var(--ice-300)}
+.fld{display:block;margin-top:14px}
+.fld span{display:block;font:600 9.5px/1 'Inter',sans-serif;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--teal-200)}
+.fld input,.fld select{
+  width:100%;height:36px;margin-top:6px;padding:0 11px;border-radius:10px;
+  background:#0E2A36;border:1px solid var(--hair);color:var(--ice-100);
+  font:400 13px/1 'Inter',sans-serif;outline:none;
+}
+.fld input:focus,.fld select:focus{border-color:var(--teal-500);background:#0B2431}
+.fld input::placeholder{color:var(--ice-700)}
+.pathin{display:flex;align-items:center;gap:8px;margin-top:6px}
+.pathin input{margin-top:0;flex:1;min-width:0}
+.chk{display:flex;align-items:flex-start;gap:9px;margin-top:14px;cursor:pointer;
+  font:400 12px/1.45 'Inter',sans-serif;color:var(--ice-300)}
+.chk input{appearance:none;-webkit-appearance:none;flex:none;width:16px;height:16px;margin:1px 0 0;
+  border-radius:5px;border:1px solid var(--hair);background:#0E2A36;position:relative;cursor:pointer}
+.chk input:checked{background:rgba(58,201,207,.22);border-color:var(--teal-500)}
+.chk input:checked::after{content:"";position:absolute;left:4px;top:1px;width:5px;height:9px;
+  border:solid var(--teal-200);border-width:0 2px 2px 0;transform:rotate(42deg)}
+.chk.off{opacity:.4;cursor:default}
+.chk.off input{cursor:default}
+.chk code{font:400 11px/1 'Consolas',monospace;color:var(--teal-200)}
+.wrow{display:flex;align-items:center;gap:12px;height:41px;
+  border-bottom:1px solid rgba(27,58,70,.65)}
+.wrow .nm{flex:1;min-width:0;font:500 12.5px/1 'Inter',sans-serif;color:var(--ice-100);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wrow .sz{font:400 11px/1 'Inter',sans-serif;color:var(--ice-700);white-space:nowrap}
+.wrow .go{font:600 11px/1 'Inter',sans-serif;color:var(--ice-500);white-space:nowrap}
+.wrow .acts{display:flex;gap:6px;white-space:nowrap}
+.wrow .acts button{height:24px;padding:0 9px;font-size:10.5px;border-radius:999px}
+.wrow .acts .danger{height:24px;font-size:10.5px;padding:0 9px}
+.fnote{margin-top:11px;font:400 11.5px/1.45 'Inter',sans-serif;color:var(--alert)}
+.fnote.soft{color:var(--ice-500)}
+.fnote:empty{display:none}
+.dlg .acts{display:flex;gap:8px;margin-top:18px;justify-content:flex-end}
+.pri{
+  height:34px;padding:0 18px;border-radius:999px;color:#062430;
+  font:600 12.5px/1 'Inter',sans-serif;
+  background:linear-gradient(180deg,#7FF3EE,#3AC9CF);
+  box-shadow:0 8px 20px rgba(58,201,207,.28);
+}
+.pri:hover{filter:brightness(1.07)}
+.pri:disabled{opacity:.45;filter:none;box-shadow:none;cursor:default}
+.danger{height:32px;padding:0 14px;border:1px solid #6B3226;border-radius:999px;
+  font:600 12px/1 'Inter',sans-serif;color:#F0A38D}
+.danger:hover{background:#3A1A14;border-color:#8A4433;color:#FFC3B2}
+
+/* ── screens ─────────────────────────────────────────────── */
+.page{position:absolute;inset:0;display:none}
+.page.on{display:block}
+
+.h2{margin:0;font:700 30px/1.05 'Poppins',sans-serif;letter-spacing:-.015em;color:var(--ice-100)}
+.kick{font:600 9.5px/1 'Inter',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:var(--teal-200)}
+.muted{font:400 12px/1.5 'Inter',sans-serif;color:var(--ice-700)}
+.hint{margin-top:8px;font:400 11.5px/1.5 'Inter',sans-serif;color:var(--ice-700)}
+.errline{font:400 11.5px/1.4 'Inter',sans-serif;color:var(--alert)}
+.errline:empty{display:none}
+.sect{border:1px solid var(--abyss-400);border-radius:16px;padding:15px 17px 17px;
+  background:linear-gradient(180deg,rgba(11,34,47,.9),rgba(8,25,36,.84))}
+.sect h3{margin:0;font:600 9.5px/1 'Inter',sans-serif;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--ice-500)}
+.sect .body{margin-top:11px}
+.frow{display:flex;gap:12px}
+.frow > .fld{flex:1;min-width:0}
+.fld textarea{width:100%;margin-top:6px;padding:9px 11px;border-radius:10px;resize:none;
+  background:#0E2A36;border:1px solid var(--hair);color:var(--ice-100);
+  font:400 12px/1.55 'Consolas',monospace;outline:none}
+.fld textarea:focus{border-color:var(--teal-500);background:#0B2431}
+.fld input[type=number]{font-variant-numeric:tabular-nums}
+.rowline{display:flex;align-items:center;gap:12px}
+.chip{display:inline-flex;align-items:center;gap:6px;height:21px;padding:0 9px;border-radius:999px;
+  border:1px solid var(--line);background:var(--abyss-200);
+  font:600 9.5px/1 'Inter',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--ice-500)}
+.savebar{display:flex;align-items:center;gap:12px;margin-top:15px}
+
+/* ── roadmap ─────────────────────────────────────────────── */
+.rmrow{display:flex;align-items:flex-start;gap:12px;padding:8px 0;
+  border-bottom:1px solid rgba(27,58,70,.65)}
+.rmrow:last-child{border-bottom:0}
+.rmdot{width:9px;height:9px;border-radius:50%;margin-top:4px;flex:none;
+  border:1px solid var(--ice-700);background:transparent}
+.rmrow.now .rmdot{background:var(--teal-300);border-color:var(--teal-200);
+  box-shadow:0 0 8px 1px rgba(127,243,238,.55)}
+.rmrow.done .rmdot{background:var(--teal-500);border-color:var(--teal-400)}
+.rmtxt{flex:1;min-width:0}
+.rmt{font:600 12.5px/1.3 'Inter',sans-serif;color:var(--ice-100)}
+.rmrow.done .rmt{color:var(--ice-500)}
+.rmd{margin-top:3px;font:400 11px/1.45 'Inter',sans-serif;color:var(--ice-700)}
+
+/* ── news ───────────────────────────────────────────────── */
+.news{position:absolute;left:29px;top:58px;right:29px;bottom:20px;display:grid;
+  grid-template-columns:246px 1fr;gap:30px}
+.nlist{border-right:1px solid var(--line);padding-right:16px;overflow:hidden}
+.nitem{padding:10px 11px;border-radius:12px;border:1px solid transparent;margin-bottom:2px}
+.nitem:hover{background:rgba(23,65,77,.3)}
+.nitem.sel{background:rgba(23,65,77,.5);border-color:var(--teal-500)}
+.nitem .d{font:600 9px/1 'Inter',sans-serif;letter-spacing:.13em;text-transform:uppercase;color:var(--teal-200)}
+.nitem .t{margin-top:6px;font:600 12.5px/1.3 'Inter',sans-serif;color:var(--ice-100)}
+.nitem .s{margin-top:4px;font:400 11px/1.4 'Inter',sans-serif;color:var(--ice-700);
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.article{overflow:hidden}
+.article h2{margin:9px 0 0;font:600 26px/1.22 'Poppins',sans-serif;color:var(--ice-100);
+  letter-spacing:-.01em;max-width:60ch}
+.article .by{margin-top:8px;font:400 11px/1 'Inter',sans-serif;color:var(--ice-700)}
+.article p{margin:12px 0 0;font:400 13px/1.6 'Inter',sans-serif;color:var(--ice-300);max-width:62ch}
+.article code{font:400 11.5px/1 'Consolas',monospace;color:var(--teal-200);
+  background:rgba(14,42,54,.9);border:1px solid var(--line);border-radius:6px;padding:2px 6px}
+.article .note2{margin-top:17px;padding:11px 14px;max-width:62ch;border-left:3px solid var(--teal-500);
+  border-radius:0 10px 10px 0;background:rgba(11,34,47,.55);
+  font:400 11.5px/1.55 'Inter',sans-serif;color:var(--ice-500)}
+
+/* ── instance detail ────────────────────────────────────── */
+.inst{position:absolute;left:29px;top:58px;right:280px;bottom:16px;display:flex;flex-direction:column}
+.ihead{display:flex;align-items:flex-end;justify-content:space-between;gap:14px}
+.inm{display:flex;align-items:center;gap:11px;font:700 27px/1.1 'Poppins',sans-serif;
+  color:var(--ice-100);letter-spacing:-.015em;max-width:360px}
+.inm span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.depth{flex:0 0 auto;font:600 11px/1 'Inter',sans-serif;color:var(--teal-200);padding:4px 9px;
+  border:1px solid var(--teal-500);border-radius:999px}
+.isub{margin-top:7px;font:400 12px/1 'Inter',sans-serif;color:var(--ice-500);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tiles{display:flex;gap:12px;margin-top:17px}
+.tile{width:165px;padding:12px 14px;border-radius:14px;border:1px solid var(--abyss-400);
+  background:linear-gradient(180deg,rgba(11,34,47,.9),rgba(8,25,36,.84))}
+.tile .k{font:600 9px/1 'Inter',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--ice-500)}
+.tile .v{margin-top:8px;font:600 18px/1 'Inter',sans-serif;color:var(--ice-100);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tile .u{margin-top:5px;font:400 10.5px/1.2 'Inter',sans-serif;color:var(--ice-700);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tabs{display:flex;gap:26px;margin-top:18px;border-bottom:1px solid var(--line)}
+.tabs button{position:relative;height:32px;font:500 12.5px/1 'Inter',sans-serif;color:var(--ice-500)}
+.tabs button:hover{color:var(--ice-100)}
+.tabs button.on{color:var(--ice-100);font-weight:600}
+.tabs button.on::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;
+  border-radius:2px;background:var(--teal-200)}
+.pane{flex:1;overflow:hidden;padding-top:15px;display:none}
+.pane.on{display:block}
+.panehead{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.list{margin-top:4px}
+.lrow{display:flex;align-items:center;gap:12px;height:41px;border-bottom:1px solid rgba(27,58,70,.65)}
+.lrow .nm{flex:1;min-width:0;font:500 12.5px/1 'Inter',sans-serif;color:var(--ice-100);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lrow.dim .nm{color:var(--ice-700)}
+.lrow .sz{font:400 11px/1 'Inter',sans-serif;color:var(--ice-700);white-space:nowrap}
+.lrow .go{font:600 11px/1 'Inter',sans-serif;color:var(--ice-500);white-space:nowrap}
+.lrow .go:hover{color:var(--teal-200)}
+.toggle{position:relative;width:34px;height:19px;border-radius:999px;background:#123243;
+  border:1px solid var(--hair);flex:0 0 auto}
+.toggle i{position:absolute;left:2px;top:2px;width:13px;height:13px;border-radius:50%;
+  background:var(--ice-700);transition:left .14s,background .14s}
+.toggle.on{background:rgba(58,201,207,.22);border-color:var(--teal-500)}
+.toggle.on i{left:17px;background:var(--teal-200)}
+.empty{margin-top:14px;font:400 12px/1.55 'Inter',sans-serif;color:var(--ice-700);max-width:52ch}
+.empty b{display:block;font:600 13px/1.4 'Inter',sans-serif;color:var(--ice-300);margin-bottom:6px}
+.ov{display:grid;grid-template-columns:1fr 286px;gap:26px}
+.kv{display:flex;flex-wrap:wrap;align-content:flex-start}
+.kv > div{width:50%;padding:8px 0;border-bottom:1px solid rgba(27,58,70,.55)}
+.kv .k{font:600 9px/1 'Inter',sans-serif;letter-spacing:.13em;text-transform:uppercase;color:var(--ice-500)}
+.kv .v{margin-top:6px;font:500 12px/1.3 'Inter',sans-serif;color:var(--ice-100);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ── horizon ────────────────────────────────────────────── */
+.banner{margin-top:11px;border:1px solid var(--abyss-400);border-left:3px solid #E0B84C;
+  border-radius:10px;padding:9px 12px;font:400 12px/1.45 'Inter',sans-serif;
+  color:var(--ice-300);background:rgba(224,184,76,.05)}
+.banner.bad{border-left-color:#E06A6A;background:rgba(224,106,106,.06);color:var(--ice-100)}
+.banner b{display:block;color:var(--ice-100);font-weight:600;margin-bottom:3px}
+.hzrow{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--abyss-400)}
+.hzrow:first-child{border-top:0}
+.hzwhen{font:600 13px/1 'Inter',sans-serif;color:var(--ice-100);
+  font-variant-numeric:tabular-nums;min-width:92px}
+.hzmid{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.hzmeta{font:400 12px/1.35 'Inter',sans-serif;color:var(--ice-500);min-width:0;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hzrow .chip{margin-left:auto;flex-shrink:0}
+.hzbar{position:relative;flex:1;min-width:0;height:4px;border-radius:999px;
+  background:#0E2A36;overflow:hidden}
+.hzbar i{position:absolute;top:0;bottom:0;left:0;border-radius:999px;
+  background:linear-gradient(90deg,#34C4CC,#7FF3EE);transition:width .2s linear}
+.hzbar.unknown i{width:38%;animation:sweep 1.35s ease-in-out infinite}
+.hznote{font:400 11.5px/1.35 'Inter',sans-serif;color:var(--ice-500);min-width:0;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hzrow button.ghost{height:24px;padding:0 11px;font-size:11px;flex-shrink:0;margin-left:auto}
+.hzacts{display:flex;gap:6px;flex-shrink:0;margin-left:auto}
+.hzacts button.ghost{margin-left:0}
+
+/* ── settings ───────────────────────────────────────────── */
+.set{position:absolute;left:29px;top:58px;right:23px;bottom:16px;display:flex;flex-direction:column;overflow-y:auto;padding-right:6px}
+.set::-webkit-scrollbar{width:7px}
+.set::-webkit-scrollbar-thumb{border-radius:99px;background:#1B3A46}
+.set::-webkit-scrollbar-track{background:transparent}
+.setgrid{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:12px}
+.set .sect{padding:11px 15px 12px}
+.set .fld{margin-top:10px}
+.set .hint{margin-top:6px;font-size:11px;line-height:1.45}
+.setfoot{position:sticky;bottom:0;margin-top:auto;padding:10px 0 2px;  border-top:1px solid var(--line);display:flex;align-items:center;gap:12px;
+  background:linear-gradient(180deg,rgba(4,16,27,0),rgba(4,16,27,.96) 42%)}
+.path{display:flex;align-items:center;gap:8px;margin-top:9px}
+.path:first-of-type{margin-top:11px}
+.path code{flex:1;min-width:0;padding:8px 10px;border-radius:9px;background:#0A1F2B;
+  border:1px solid var(--line);font:400 11px/1.3 'Consolas',monospace;color:var(--ice-300);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.path .lab{width:64px;flex:0 0 auto;font:600 9px/1 'Inter',sans-serif;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--ice-700)}
+
+/* ── account ────────────────────────────────────────────── */
+.acc{position:absolute;left:29px;top:58px;right:29px;bottom:16px;display:flex;flex-direction:column}
+.acccard{width:640px;border-radius:18px;border:1px solid var(--abyss-400);padding:18px 20px;
+  background:linear-gradient(180deg,rgba(11,34,47,.92),rgba(8,25,36,.88))}
+.acchead{display:flex;align-items:center;gap:14px}
+.avatar.big{width:52px;height:52px;font:700 19px/1 'Inter',sans-serif;color:#062430;
+  display:grid;place-items:center}
+.accname{font:700 21px/1.1 'Poppins',sans-serif;color:var(--ice-100);letter-spacing:-.01em}
+.accsub{margin-top:6px;display:flex;align-items:center;gap:8px}
+.uuid{margin-top:14px;padding:9px 11px;border-radius:9px;background:#0A1F2B;border:1px solid var(--line);
+  font:400 11px/1.3 'Consolas',monospace;color:var(--ice-500);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.skin{margin-top:13px;display:flex;gap:13px;align-items:flex-start;padding:13px 15px;
+  border-radius:14px;border:1px solid var(--line);background:rgba(7,24,38,.6)}
+.skin .ph{width:44px;height:56px;border-radius:8px;flex:0 0 auto;
+  background:repeating-linear-gradient(135deg,#0E2A36 0 6px,#0B222F 6px 12px);
+  border:1px solid var(--hair)}
+/* The skin's own head: region (8,8) 8x8 of a 64x64 sheet, blown up 7x. */
+.skinhead{width:56px;height:56px;flex:0 0 auto;border-radius:10px;border:1px solid var(--hair);
+  background:#0A1F2B no-repeat -56px -56px/448px 448px;
+  image-rendering:pixelated}
+.skinhead.on{border-color:var(--teal-300)}
+.skin .tt{font:600 12.5px/1.3 'Inter',sans-serif;color:var(--ice-100)}
+.skin .dd{margin-top:5px;font:400 11.5px/1.5 'Inter',sans-serif;color:var(--ice-700)}
+
+.acc{margin-left:0}
+.iheadl{min-width:0}
+.acts2{display:flex;gap:8px;align-items:center;flex:0 0 auto}
+.pri.sm,.ghost.sm{height:30px;padding:0 13px;font-size:11.5px}
+.pane{overflow-y:auto;padding-right:7px}
+.nlist{overflow-y:auto}
+.article{overflow-y:auto;padding-right:9px}
+.pane::-webkit-scrollbar,.nlist::-webkit-scrollbar,.article::-webkit-scrollbar{width:7px}
+.pane::-webkit-scrollbar-thumb,.nlist::-webkit-scrollbar-thumb,.article::-webkit-scrollbar-thumb{
+  border-radius:99px;background:#1B3A46}
+.pane::-webkit-scrollbar-track,.nlist::-webkit-scrollbar-track,.article::-webkit-scrollbar-track{background:transparent}
+.muted code{font-size:11px}
+.kv .v.wrap{white-space:normal;word-break:break-all;font-family:'Consolas',monospace;font-size:11px}
+
+/* ── toast ──────────────────────────────────────────────── */
+.toast{
+  position:absolute;left:29px;top:610px;padding:9px 14px;border-radius:10px;
+  background:rgba(7,24,38,.96);border:1px solid var(--line);
+  font:500 12px/1.3 'Inter',sans-serif;color:var(--ice-300);
+  opacity:0;transform:translateY(6px);transition:opacity .18s,transform .18s;z-index:40;
+  /* It sits over the bottom-left of the page while invisible, so it must not
+     eat clicks: the Settings "Save settings" button lives right under it. */
+  pointer-events:none;
+  max-width:520px;
+}
+.toast.on{opacity:1;transform:translateY(0)}
+</style>
+</head>
+<body>
+<div id="jsfail" style="display:none;position:fixed;left:0;right:0;top:0;z-index:9999;background:#3a1512;color:#ffd9d3;font:12px/1.4 Consolas,monospace;padding:10px 14px;white-space:pre-wrap"></div>
+<script>
+window.addEventListener("error", function (e) {
+  var box = document.getElementById("jsfail");
+  if (!box) return;
+  box.style.display = "block";
+  box.textContent = "UI script error: " + (e.message || e.error) + " @ line " + (e.lineno || 0);
+});
+</script>
+<div class="win" id="win">
+
+  <svg class="shafts" width="1048" height="655" aria-hidden="true">
+    <defs>
+      <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#F2FDFF" stop-opacity=".12"/>
+        <stop offset="1" stop-color="#7FF3EE" stop-opacity=".03"/>
+      </linearGradient>
+    </defs>
+    <polygon points="150,0 220,0 400,655 230,655" fill="url(#g)"/>
+    <polygon points="420,0 470,0 640,655 520,655" fill="url(#g)"/>
+    <polygon points="700,0 740,0 900,655 790,655" fill="url(#g)"/>
+    <polygon points="60,0 90,0 150,655 100,655" fill="url(#g)"/>
+  </svg>
+  <div class="mark">TRENCH</div>
+  <span class="pt" style="left:666px;top:438px;width:1px;height:1px;opacity:.25;filter:blur(.6px);animation-delay:-2s"></span>
+  <span class="pt" style="left:688px;top:196px;width:2px;height:2px;opacity:.35;animation-delay:-5s"></span>
+  <span class="pt" style="left:190px;top:386px;width:1px;height:1px;opacity:.45;animation-delay:-1s"></span>
+  <span class="pt" style="left:212px;top:472px;width:2px;height:2px;opacity:.55;filter:blur(.6px);animation-delay:-7s"></span>
+  <span class="pt" style="left:746px;top:142px;width:1px;height:1px;opacity:.25;animation-delay:-3s"></span>
+  <span class="pt" style="left:700px;top:392px;width:1px;height:1px;opacity:.3;animation-delay:-6s"></span>
+  <span class="pt" style="left:520px;top:300px;width:1px;height:1px;opacity:.2;animation-delay:-4s"></span>
+  <span class="pt" style="left:120px;top:240px;width:1px;height:1px;opacity:.3;animation-delay:-8s"></span>
+
+  <svg class="floor" width="1048" height="64" viewBox="0 0 1048 64" aria-hidden="true">
+    <path d="M0 64V40L70 32 130 44 210 30 300 46 390 38 470 50 560 36 640 48 700 30 760 22 800 34 830 18 850 36 930 40 1000 28 1048 36V64Z" fill="#071826"/>
+    <path d="M760 22L790 8 800 34M830 18L842 4" fill="none" stroke="#071826" stroke-width="3"/>
+    <path d="M96 44C88 30 104 22 96 8" fill="none" stroke="#071826" stroke-width="4" stroke-linecap="round"/>
+  </svg>
+  <div class="vig"></div>
+
+  <!-- top bar -->
+  <div class="top" id="bar">
+    <div class="brand">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="#67EEE9" stroke-width="1.6"
+           stroke-linecap="round" aria-hidden="true">
+        <path d="M2 11.5c2.6 0 3.2-2.4 5-2.4s2.4 2.4 5 2.4 3-1.4 4-2"/>
+        <path d="M2 15.2c2.6 0 3.2-2.4 5-2.4s2.4 2.4 5 2.4 3-1.4 4-2"/>
+        <circle cx="12.6" cy="5.1" r="1.7" fill="#67EEE9" stroke="none"/>
+      </svg>
+      <b>Trenchlight</b>
+    </div>
+    <div class="nav">
+      <button class="on" data-nav="play">Play</button>
+      <button data-nav="news">News</button>
+      <button data-nav="servers">Instances</button>
+      <button data-nav="horizon">Horizon</button>
+      <button data-nav="roadmap">Roadmap</button>
+      <button data-nav="settings">Settings</button>
+    </div>
+    <div class="spacer"></div>
+    <button class="pill" id="account" title="Local offline profile">
+      <span class="avatar"></span>
+      <span class="who" id="who">Player</span>
+      <span class="kind">Offline profile</span>
+      <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="#6F97A3" stroke-width="1.4">
+        <path d="M2.5 4L5 6.5 7.5 4"/>
+      </svg>
+    </button>
+    <div class="wc">
+      <button id="min" title="Minimise">
+        <svg width="11" height="11" viewBox="0 0 11 11" stroke="currentColor" stroke-width="1.4"><path d="M2.5 5.5h6"/></svg>
+      </button>
+      <button class="close" id="close" title="Close">
+        <svg width="11" height="11" viewBox="0 0 11 11" stroke="currentColor" stroke-width="1.4"><path d="M3 3l5 5M8 3l-5 5"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="page on" id="page-play">
+
+  <!-- hero -->
+  <div class="hero">
+    <h1>Trenchlight</h1>
+    <p class="sub">Descend into a world of your own.</p>
+    <div class="tags" id="tags"></div>
+  </div>
+
+  <div class="actions">
+    <button class="play" id="play">
+      <svg width="11" height="12" viewBox="0 0 11 12" fill="currentColor"><path d="M1 1.1v9.8L10 6z"/></svg>
+      Play
+    </button>
+    <button class="pick" id="pick">
+      <span id="pick-label">no install</span>
+      <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="#9FC4CC" stroke-width="1.4">
+        <path d="M2.5 4L5 6.5 7.5 4"/>
+      </svg>
+    </button>
+    <button class="ib" id="folder" title="Open instance folder">
+      <svg width="17" height="17" viewBox="0 0 17 17" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M2 5.2c0-.7.5-1.2 1.2-1.2h2.6l1.3 1.5h5.7c.7 0 1.2.5 1.2 1.2v5.6c0 .7-.5 1.2-1.2 1.2H3.2c-.7 0-1.2-.5-1.2-1.2z"/>
+      </svg>
+    </button>
+    <button class="ib" id="refresh" title="Rescan instances">
+      <svg width="17" height="17" viewBox="0 0 17 17" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M13.4 7.2A5.4 5.4 0 1 0 12.6 11"/>
+        <path d="M13.7 3.4v4h-4"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- cards -->
+  <div class="cards">
+    <div class="card a">
+      <div class="chead">
+        <div class="lbl">Launcher news</div>
+        <button class="more" id="news-more">All posts</button>
+      </div>
+      <div class="when" id="news-when">Nov 18 · Feature</div>
+      <div class="head" id="news-head">Offline profiles are the default.</div>
+      <div class="body" id="news-body">No account, no sign-in — every profile is a local folder on this PC.</div>
+    </div>
+    <div class="card b">
+      <div class="lbl">Java runtimes</div>
+      <div id="java-rows"></div>
+    </div>
+    <div class="card c">
+      <div class="lbl" id="worlds-lbl">Worlds</div>
+      <div id="worlds-rows"></div>
+    </div>
+  </div>
+
+  <!-- rail -->
+  <aside class="rail">
+    <div class="lbl">Depth gauge / Versions</div>
+    <div class="rows" id="rows"></div>
+    <button class="add" id="add">
+      <svg width="11" height="11" viewBox="0 0 11 11" stroke="currentColor" stroke-width="1.6"><path d="M5.5 1.5v8M1.5 5.5h8"/></svg>
+      New installation
+    </button>
+    <div class="upd">
+      <div class="v" id="store-name">Shared store</div>
+      <div class="t" id="store-path">assets and libraries</div>
+      <button id="store-btn">Open folder</button>
+    </div>
+    <div class="foot" id="foot">Launcher 0.4.2 · Unofficial</div>
+  </aside>
+
+  </div><!-- /page-play -->
+
+  <!-- news -->
+  <div class="page" id="page-news">
+    <div class="news">
+      <div class="nlist" id="nlist"></div>
+      <div class="article" id="nart"></div>
+    </div>
+  </div>
+
+  <!-- instances -->
+  <div class="page" id="page-inst">
+    <div class="inst">
+      <div class="ihead">
+        <div class="iheadl">
+          <div class="inm"><span id="i-name">No installation</span><span class="depth" id="i-depth">0 m</span></div>
+          <div class="isub" id="i-sub">Nothing selected</div>
+        </div>
+        <div class="acts2">
+          <button class="pri sm" id="i-play">Play</button>
+          <button class="ghost" id="i-folder">Open folder</button>
+          <button class="ghost" id="i-trash">Move to trash</button>
+        </div>
+      </div>
+      <div class="tiles" id="i-tiles"></div>
+      <div class="tabs">
+        <button class="on" data-itab="overview">Overview</button>
+        <button data-itab="mods">Mods</button>
+        <button data-itab="worlds">Worlds</button>
+      </div>
+      <div class="pane on" id="pane-overview">
+        <div class="ov">
+          <div class="kv" id="i-kv"></div>
+          <div>
+            <div class="sect">
+              <h3>This installation only</h3>
+              <div class="body">
+                <div class="frow">
+                  <label class="fld"><span>Heap (MiB)</span>
+                    <input id="i-mem" type="number" min="0" max="32768" step="256" autocomplete="off"></label>
+                  <label class="fld"><span>Width</span>
+                    <input id="i-w" type="number" min="0" max="7680" step="10" autocomplete="off"></label>
+                  <label class="fld"><span>Height</span>
+                    <input id="i-h" type="number" min="0" max="7680" step="10" autocomplete="off"></label>
+                </div>
+                <label class="fld"><span>JVM arguments</span>
+                  <textarea id="i-jvm" rows="3" spellcheck="false" placeholder="one per line"></textarea></label>
+                <div class="hint" id="i-ovhint">Empty means it inherits the launcher default.</div>
+                <div class="savebar">
+                  <button class="pri sm" id="i-save">Save</button>
+                  <span class="errline" id="i-err"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="pane" id="pane-mods">
+        <div class="panehead">
+          <div class="muted" id="mods-lede">Mods are ordinary <code>.jar</code> files in <code>mods\</code>.</div>
+          <button class="ghost" id="mods-folder">Open mods folder</button>
+        </div>
+        <div class="list" id="mods-list"></div>
+      </div>
+      <div class="pane" id="pane-worlds">
+        <div class="panehead">
+          <div class="muted" id="worlds-lede">Saved worlds inside this installation.</div>
+          <button class="ghost" id="worlds-folder">Open saves folder</button>
+        </div>
+        <div class="list" id="worlds-list"></div>
+      </div>
+    </div>
+
+    <aside class="rail">
+      <div class="lbl">Depth gauge / Versions</div>
+      <div class="rows" id="rows2"></div>
+      <button class="add" id="add2">
+        <svg width="11" height="11" viewBox="0 0 11 11" stroke="currentColor" stroke-width="1.6"><path d="M5.5 1.5v8M1.5 5.5h8"/></svg>
+        New installation
+      </button>
+      <div class="foot" id="foot2">Launcher 0.4.2 · Unofficial</div>
+    </aside>
+  </div>
+
+  <!-- horizon -->
+  <div class="page" id="page-horizon">
+    <div class="set">
+      <h2 class="h2">Horizon</h2>
+      <div class="muted" style="margin-top:8px">Minecraft Java, rewritten in Rust. Their engine, our front end &mdash; no account anywhere.</div>
+
+      <div class="banner" id="hz-banner" hidden></div>
+
+      <div class="setgrid">
+        <div class="sect" style="grid-column:1/-1">
+          <h3>Game builds</h3>
+          <div class="body">
+            <div class="panehead">
+              <div class="muted" id="hz-lede">Newest first, straight from GitHub.</div>
+              <button class="ghost sm" id="hz-refresh" type="button">Refresh</button>
+            </div>
+            <div class="list" id="hz-builds"></div>
+          </div>
+        </div>
+        <div class="sect">
+          <h3>Engine</h3>
+          <div class="body" id="hz-engine"></div>
+        </div>
+        <div class="sect">
+          <h3>Installed</h3>
+          <div class="body" id="hz-installed"></div>
+        </div>
+        <div class="sect" style="grid-column:1/-1">
+          <h3>Worlds</h3>
+          <div class="body">
+            <div class="panehead">
+              <div class="muted" id="hz-worlds-lede">Horizon reads its worlds from the running game.</div>
+              <button class="ghost sm" id="hz-worlds-refresh" type="button">Refresh</button>
+            </div>
+            <div class="list" id="hz-worlds"></div>
+          </div>
+        </div>
+        <div class="sect" style="grid-column:1/-1">
+          <h3>Backups</h3>
+          <div class="body">
+            <div class="panehead">
+              <div class="muted" id="hz-backups-lede">Zips under <code>instances\horizon\backups</code>.</div>
+            </div>
+            <div class="list" id="hz-backups"></div>
+          </div>
+        </div>
+      </div>
+      <div class="setfoot">
+        <span class="chip" id="hz-source">&mdash;</span>
+        <span class="muted" id="hz-root" style="margin-left:auto;font-size:11px"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- roadmap -->
+  <div class="page" id="page-roadmap">
+    <div class="set">
+      <h2 class="h2">Roadmap</h2>
+      <div class="muted" style="margin-top:8px">Things we are trying to implement &mdash; small, real, and kept by hand.</div>
+      <div class="setgrid">
+        <div class="sect" style="grid-column:1/-1">
+          <h3>In the works</h3>
+          <div class="body"><div class="list" id="rm-now"></div></div>
+        </div>
+        <div class="sect">
+          <h3>Next</h3>
+          <div class="body"><div class="list" id="rm-next"></div></div>
+        </div>
+        <div class="sect">
+          <h3>Shipped</h3>
+          <div class="body"><div class="list" id="rm-done"></div></div>
+        </div>
+      </div>
+      <div class="setfoot">
+        <span class="chip" id="rm-count">&mdash;</span>
+        <span class="muted" style="margin-left:auto;font-size:11px">Edit the ROADMAP list in <code>ui/menu.html</code></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- settings -->
+  <div class="page" id="page-settings">
+    <div class="set">
+      <h2 class="h2">Settings</h2>
+      <div class="muted" style="margin-top:8px">These values are the launcher default. An installation can override them.</div>
+      <div class="setgrid">
+        <div class="sect">
+          <h3>Offline profile</h3>
+          <div class="body">
+            <label class="fld"><span>Player name</span>
+              <input id="set-user" maxlength="32" spellcheck="false" autocomplete="off"></label>
+            <div class="path"><span class="lab">UUID</span><code id="set-uuid">—</code></div>
+            <div class="hint">Offline only - this launcher never signs in.</div>
+          </div>
+        </div>
+        <div class="sect">
+          <h3>Memory &amp; Java</h3>
+          <div class="body">
+            <label class="fld"><span>Default heap (MiB)</span>
+              <input id="set-mem" type="number" min="512" max="32768" step="256" autocomplete="off"></label>
+            <label class="fld"><span>JVM arguments</span>
+              <textarea id="set-jvm" rows="3" spellcheck="false" placeholder="-XX:+UseG1GC
+one per line"></textarea></label>
+            <div class="hint">512 to 32768. Empty lines are dropped.</div>
+          </div>
+        </div>
+        <div class="sect" style="grid-column:1/-1">
+          <h3>Storage</h3>
+          <div class="body">
+            <label class="fld"><span>Shared store</span>
+              <div class="pathin">
+                <input id="set-shared" spellcheck="false" autocomplete="off">
+                <button class="ghost sm" id="set-browse" type="button">Browse&hellip;</button>
+              </div></label>
+            <div class="hint">Libraries and assets live here once and are shared by every installation.</div>
+            <div class="path"><span class="lab">Launcher</span><code id="set-root">—</code><button class="ghost sm" id="set-open-root">Open</button></div>
+            <div class="path"><span class="lab">Config</span><code id="set-config">—</code><button class="ghost sm" id="set-open-config">Reveal</button></div>
+          </div>
+        </div>
+      </div>
+      <div class="setfoot">
+        <button class="pri" id="set-save">Save settings</button>
+        <button class="ghost" id="set-reload">Reload</button>
+        <span class="errline" id="set-err"></span>
+        <span class="chip" style="margin-left:auto">Saved to settings.json</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- account -->
+  <div class="page" id="page-account">
+    <div class="acc">
+      <h2 class="h2">Account</h2>
+      <div class="muted" style="margin-top:8px">Trenchlight is offline-only. There is nothing to sign in to.</div>
+      <div class="acccard" style="margin-top:18px">
+        <div class="acchead">
+          <span class="avatar big" id="acc-initial">P</span>
+          <div>
+            <div class="accname" id="acc-name">Player</div>
+            <div class="accsub"><span class="chip">Offline profile</span>
+              <span class="muted" id="acc-kind">no Microsoft account</span></div>
+          </div>
+        </div>
+        <div class="uuid" id="acc-uuid">—</div>
+        <div class="skin">
+          <div class="skinhead" id="skin-head" title="The head of the stored skin"></div>
+          <div style="flex:1;min-width:0">
+            <div class="tt" id="skin-title">No skin yet — every player is Steve</div>
+            <div class="dd" id="skin-desc">A 64×64 PNG (or a multiple, like 128×128). Offline there is no skin
+              server to ask, so the launcher writes a small resource pack that replaces the default player
+              texture instead.</div>
+            <div class="savebar" style="margin-top:10px">
+              <button class="pri sm" id="skin-pick" type="button">Choose skin…</button>
+              <button class="ghost sm" id="skin-clear" type="button" disabled>Remove skin</button>
+            </div>
+          </div>
+        </div>
+        <div class="savebar">
+          <button class="pri sm" id="acc-edit">Change player name</button>
+          <button class="ghost" id="acc-open">Open launcher folder</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- in game: Rust runs the session, the page is only the report -->
+  <div class="live" id="live">
+    <div class="livecard">
+      <div class="lhead">
+        <span class="dot"></span>
+        <div class="n" id="live-name">In game</div>
+        <div class="clock" id="live-clock">00:00</div>
+      </div>
+      <div class="m" id="live-meta">Minecraft is running. The launcher is out of the way.</div>
+      <div class="acts">
+        <button class="ghost" id="live-show">Show game</button>
+        <button class="ghost" id="live-quit">Quit game</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- launch overlay -->
+  <div class="scrim" id="scrim">
+    <div class="box">
+      <button class="cancel" id="cancel">Cancel</button>
+      <div class="t">Descending <span id="lname"></span></div>
+      <div class="s" id="stage">Preparing…</div>
+      <div class="bar"><i></i></div>
+    </div>
+  </div>
+
+  <!-- failure -->
+  <div class="failscreen" id="failscreen"></div>
+  <div class="fail" id="fail">
+    <h2>The dive failed.</h2>
+    <p id="fail-why"></p>
+    <pre id="fail-log"></pre>
+    <div class="acts">
+      <button class="ghost" id="fail-open">Open log</button>
+      <button class="ghost" id="fail-close">Back</button>
+    </div>
+  </div>
+
+  <!-- dialogs -->
+  <div class="sheet" id="sheet"></div>
+
+  <div class="dlg" id="dlg" role="dialog" aria-label="New installation">
+    <h2>New installation</h2>
+    <p>A folder of its own: mods, worlds and options stay inside it.</p>
+    <label class="fld"><span>Name</span>
+      <input id="new-name" maxlength="64" spellcheck="false" autocomplete="off"></label>
+    <label class="fld"><span>Minecraft version</span>
+      <input id="new-ver" list="ver-list" maxlength="32" spellcheck="false" autocomplete="off">
+      <datalist id="ver-list"></datalist></label>
+    <label class="fld"><span>Start from</span>
+      <select id="new-from"></select></label>
+    <label class="chk" id="new-mods-wrap"><input type="checkbox" id="new-mods">
+      <span>Copy this version's <code>mods</code>, <code>config</code> and <code>saves</code>.
+        Launcher-style installs keep a modpack's files beside the version folder; this brings
+        them in. Ignored when copying an installation.</span></label>
+    <div class="fnote" id="new-note"></div>
+    <div class="acts">
+      <button class="ghost" id="new-cancel">Cancel</button>
+      <button class="pri" id="new-ok">Create</button>
+    </div>
+  </div>
+
+  <div class="dlg small" id="kill" role="dialog" aria-label="Move to trash">
+    <h2>Move to trash?</h2>
+    <p id="kill-why"></p>
+    <div class="acts">
+      <button class="ghost" id="kill-cancel">Keep it</button>
+      <button class="danger" id="kill-ok">Move to trash</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>window.__BOOT__ = {{BOOT}};</script>
+<script>
+const $ = (id) => document.getElementById(id);
+const send = (msg) => { try { window.ipc.postMessage(JSON.stringify(msg)); } catch (e) {} };
+
+const DEPTHS = [0, 120, 340, 900, 1600, 2400, 3400, 4600];
+const state = { user: "Player", instances: [], java: [], selected: null, launching: false, spawning: false,
+  session: null, settings: null, detail: null, detailError: null, news: 0, page: "play", versions: [],
+  skin: null,
+  horizon: { builds: [], installed: [], root: "", error: null, warning: null, source: null,
+             loading: false, asked: false, installing: null, stage: null, note: null,
+             done: 0, total: null, installError: null, preparing: null,
+             prepareFraction: null, prepareBytes: null, prepareNote: null, preparingError: false,
+             ready: [], checked: false,
+             worlds: [], worldsError: null, worldsLoading: false, worldsAsked: false,
+             worldsRunning: false, backups: [], armed: null } };
+
+/* ── render ─────────────────────────────────────────────── */
+function current() {
+  return state.instances.find(i => i.name === state.selected) || state.instances[0] || null;
+}
+
+function render() {
+  const inst = current();
+  $("who").textContent = state.user;
+
+  // tags: version, java, mods
+  const tags = [];
+  if (inst) {
+    tags.push(`Minecraft ${inst.version}`);
+    // A picked runtime is a fact; a per-version rule match is not, so do not
+    // print a Java number we cannot stand behind.
+    if (inst.java) tags.push(typeof inst.java === "string" && inst.java.startsWith("Java") ? inst.java : "Java set");
+    else tags.push("Java auto");
+    if (inst.mods) tags.push(`${inst.mods} mod${inst.mods === 1 ? "" : "s"}`);
+    if (inst.last_played) tags.push(`Last dive · ${inst.ago}`);
+    if (inst.missing) tags.push("Folder not found");
+    else if (!inst.installed) tags.push(`${inst.version} not downloaded`);
+  } else {
+    tags.push("No installations");
+  }
+  $("tags").innerHTML = tags.map((t, i) =>
+    `<span class="tag${i === 0 ? "" : " dim"}">${i === 0 ? "<i></i>" : ""}${esc(t)}</span>`).join("");
+
+  $("pick-label").textContent = inst ? inst.version : "no install";
+  $("play").disabled = !inst || inst.missing || state.launching;
+
+  // rail — the same list in two places: the Play screen and the Instances screen
+  const rows = state.instances.map((i, n) => {
+    const depth = DEPTHS[n] ?? (4600 + (n - 7) * 800);
+    const st = i.missing
+      ? "Folder not found"
+      : (i.installed ? `Ready · ${i.version} · ${depth} m`
+                     : `Not downloaded · ${i.version} · ${depth} m`);
+    return `<div class="row${i.name === state.selected ? " sel" : ""}${i.missing ? " gone" : ""}" data-inst="${esc(i.name)}">
+      <span class="node"></span>
+      <div><div class="nm">${esc(i.name)}</div><div class="st">${esc(st)}</div></div>
+      <button class="kill" title="Move to trash" aria-label="Move to trash">&times;</button>
+    </div>`;
+  }).join("");
+  ["rows", "rows2"].forEach(id => {
+    const host = $(id);
+    host.innerHTML = rows || `<div class="st" style="padding:10px 0;color:var(--ice-700)">No installations yet.</div>`;
+    host.querySelectorAll(".row").forEach(el => {
+      el.onclick = (e) => {
+        if (e.target.closest(".kill")) return;
+        state.selected = el.dataset.inst;
+        state.detail = null;
+        render();
+        if (state.page === "inst") { requestDetail(); renderInst(); }
+      };
+      el.ondblclick = (e) => {
+        if (e.target.closest(".kill")) return;
+        start();
+      };
+      const kill = el.querySelector(".kill");
+      if (kill) kill.onclick = (e) => { e.stopPropagation(); askTrash(el.dataset.inst); };
+    });
+  });
+
+  // java card
+  const js = state.java.slice(0, 3);
+  $("java-rows").innerHTML = js.length
+    ? js.map((j, i) => `<div class="mono-row${i ? " dim" : ""}" title="${esc(j.path)}"><span>Java ${j.major}</span><b>${esc(j.version)}</b></div>`).join("")
+    : `<div class="mono-row dim"><span>None found</span></div>`;
+
+  // worlds card
+  if (inst) {
+    $("worlds-lbl").textContent = "This instance";
+    $("worlds-rows").innerHTML = `
+      <div class="mono-row"><span>Worlds</span><b>${inst.worlds}</b></div>
+      <div class="mono-row"><span>Mods</span><b>${inst.mods}</b></div>
+      <div class="mono-row"><span>Last dive</span><b>${esc(inst.ago)}</b></div>`;
+  } else {
+    $("worlds-lbl").textContent = "This instance";
+    $("worlds-rows").innerHTML = `<div class="mono-row dim"><span>Nothing selected</span></div>`;
+  }
+}
+
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+/* ── roadmap ─────────────────────────────────────────────── */
+// Kept by hand: add a line, rebuild, and it is on the page. `now` glows, `next`
+// is hollow, `done` is filled. Nothing here is fetched.
+const ROADMAP = {
+  now: [
+    { t: "Rust skins", d: "Custom player skins for the Rust client." },
+    { t: "Worlds without a dive", d: "List and back up saves from the folder, without booting a 1.2 GB game." },
+    { t: "Honest load phases", d: "The dock card should say what the game is doing, not just \u201cin game\u201d." },
+  ],
+  next: [
+    { t: "World rename", d: "Horizon's ctl can do it, but only from the title screen." },
+    { t: "Restore safety", d: "Atomic restore, no path escapes, never over an existing world." },
+    { t: "Import / export a world", d: "Move a save as a zip, in and out." },
+    { t: "Crash detail", d: "Show the crash report, copy it, open its folder." },
+  ],
+  done: [
+    { t: "Horizon front end", d: "Install, prepare, play, dock, worlds, offline name." },
+    { t: "Launcher icon and version block", d: "Recognisable in Explorer and on the taskbar." },
+  ],
+};
+
+function renderRoadmap() {
+  const draw = (id, rows, cls) => {
+    $(id).innerHTML = rows.map(r =>
+      `<div class="rmrow ${cls}"><span class="rmdot"></span><div class="rmtxt">` +
+      `<div class="rmt">${esc(r.t)}</div><div class="rmd">${esc(r.d)}</div></div></div>`
+    ).join("");
+  };
+  draw("rm-now", ROADMAP.now, "now");
+  draw("rm-next", ROADMAP.next, "next");
+  draw("rm-done", ROADMAP.done, "done");
+  $("rm-count").textContent =
+    `${ROADMAP.now.length} in the works \u00b7 ${ROADMAP.next.length} next \u00b7 ${ROADMAP.done.length} shipped`;
+}
+
+/* ── pages ──────────────────────────────────────────────── */
+const PAGES = ["play", "news", "inst", "horizon", "roadmap", "settings", "account"];
+function go(page) {
+  if (!PAGES.includes(page)) page = "play";
+  state.page = page;
+  PAGES.forEach(p => $("page-" + p).classList.toggle("on", p === page));
+  document.querySelectorAll(".nav button").forEach(x =>
+    x.classList.toggle("on", page !== "account" && x.dataset.nav === (page === "inst" ? "servers" : page)));
+  if (page === "inst") { requestDetail(); renderInst(); }
+  if (page === "horizon") { renderHorizon(); refreshHorizon(false); checkHorizon();
+    if (!state.horizon.worldsAsked) { state.horizon.worldsAsked = true; refreshWorlds(); } }
+  if (page === "settings") renderSettings();
+  if (page === "roadmap") renderRoadmap();
+  if (page === "account") renderAccount();
+  if (page === "news") renderNews();
+}
+function depthOf(i) {
+  const n = state.instances.findIndex(x => x.name === i.name);
+  return DEPTHS[n] ?? (4600 + Math.max(0, n - 7) * 800);
+}
+
+/* ── news ───────────────────────────────────────────────── */
+const NEWS = [
+  {
+    date: "Nov 18 \u00b7 Feature", title: "Tidepool profiles are here",
+    by: "By the Trenchlight team \u00b7 1 min read",
+    body: [
+      ["p", "Profiles group installations and switch between loadouts without touching a folder. Each profile keeps its own version, mods and settings, and shares one store of libraries and assets underneath."],
+      ["p", "Nothing is copied twice. Ten installations cost little more than one."],
+      ["p", "Memory is set per profile. The default is"],
+      ["code", "-Xmx4096M"],
+      ["p", "and can be changed in Settings or on the instance sheet."],
+      ["note", "Every profile is a plain folder under the launcher root. Nothing here needs an account, and nothing leaves this PC."]
+    ]
+  },
+  {
+    date: "Nov 18 \u00b7 Note", title: "Offline is the default, not a limitation",
+    by: "By the Trenchlight team \u00b7 1 min read",
+    body: [
+      ["p", "Trenchlight has no Microsoft sign-in, no skins, no server list and no modpack downloads. That is a decision, not an unfinished feature: every part of the loop you can see works without a network."],
+      ["p", "What it cannot do is pretend. A version that is not on disk downloads on the first Play, and the rail says so before you press it."]
+    ]
+  },
+  {
+    date: "Nov 18 \u00b7 Release", title: "Launcher 0.4.2",
+    by: "By the Trenchlight team \u00b7 1 min read",
+    body: [
+      ["p", "The window is a real launcher now: instances, copy-on-create, trash, a mod and world list per installation, settings that validate before they are written, and a dive that is owned by the launcher rather than by the page."],
+      ["p", "A version folder from another launcher can be imported with its mods and configs in one step, the shared store has a native folder picker, and each world can be backed up or moved to trash without leaving the window."],
+      ["p", "Play minimises the window to the taskbar. Click the taskbar button to bring the card back; the clock is real, and a crash that happens while you are away still reaches the failure screen."]
+    ]
+  }
+];
+function renderNews() {
+  $("nlist").innerHTML = NEWS.map((n, i) => `
+    <div class="nitem${i === state.news ? " sel" : ""}" data-news="${i}">
+      <div class="d">${esc(n.date)}</div>
+      <div class="t">${esc(n.title)}</div>
+      <div class="s">${esc(n.body[0][1]).slice(0, 74)}\u2026</div>
+    </div>`).join("");
+  $("nlist").querySelectorAll(".nitem").forEach(el => {
+    el.onclick = () => { state.news = +el.dataset.news; renderNews(); };
+  });
+  const n = NEWS[state.news] || NEWS[0];
+  $("nart").innerHTML = `<div class="kick">${esc(n.date)}</div>
+    <h2>${esc(n.title)}</h2>
+    <div class="by">${esc(n.by)}</div>
+    ${n.body.map(([k, v]) => k === "p" ? `<p>${esc(v)}</p>`
+      : k === "code" ? `<p><code>${esc(v)}</code></p>`
+      : `<div class="note2">${esc(v)}</div>`).join("")}`;
+}
+
+/* ── instance detail ────────────────────────────────────── */
+function requestDetail(force) {
+  const inst = current();
+  if (!inst || inst.missing) { state.detail = null; return; }
+  // The mods and worlds tabs show the disk as it is now, so switching to them
+  // re-reads the folder instead of trusting a list fetched minutes ago.
+  if (force) { state.detail = null; state.detailError = null; renderInst(); }
+  else if (state.detail && state.detail.view && state.detail.view.name === inst.name) return;
+  send({ cmd: "detail", name: inst.name });
+}
+function renderInst() {
+  const inst = current();
+  const d = state.detail && state.detail.view && inst && state.detail.view.name === inst.name
+    ? state.detail : null;
+  $("i-name").textContent = inst ? inst.name : "No installation";
+  $("i-depth").textContent = inst ? depthOf(inst) + " m" : "0 m";
+  $("i-sub").textContent = inst
+    ? (inst.missing ? "Folder not found \u2014 nothing to open"
+      : `${inst.version}${inst.installed ? "" : " \u00b7 not downloaded yet"} \u00b7 ${inst.mods} mod${inst.mods === 1 ? "" : "s"} \u00b7 ${inst.worlds} world${inst.worlds === 1 ? "" : "s"}`)
+    : "Nothing selected";
+  $("i-play").disabled = !inst || inst.missing || state.launching;
+  $("i-folder").disabled = $("i-trash").disabled = !inst;
+
+  $("i-tiles").innerHTML = inst ? `
+    <div class="tile"><div class="k">On disk</div><div class="v">${esc(inst.size)}</div><div class="u">${esc(inst.bytes ? humanish(inst.bytes) : "empty")}</div></div>
+    <div class="tile"><div class="k">Last dive</div><div class="v">${esc(inst.ago)}</div><div class="u">${esc(inst.last_played || "never")}</div></div>
+    <div class="tile"><div class="k">Worlds</div><div class="v">${inst.worlds}</div><div class="u">${inst.mods} mod${inst.mods === 1 ? "" : "s"} loaded</div></div>`
+    : "";
+
+  $("i-kv").innerHTML = inst ? [
+    ["Version", inst.version],
+    ["Player", inst.user],
+    ["Java", inst.java ? (String(inst.java).startsWith("Java") ? inst.java : "picked") : "automatic"],
+    ["Heap", (d && d.view.memory_mb ? d.view.memory_mb : inst.memory_mb) + " MiB"],
+    ["Overrides", [inst.memory_set ? "memory" : "", inst.user_set ? "player" : ""].filter(Boolean).join(", ") || "none"],
+    ["Installed", inst.installed ? "yes" : "no"],
+    ["Folder", inst.dir]
+  ].map(([k, v], i) => `<div${i === 6 ? ' style="width:100%"' : ""}><div class="k">${esc(k)}</div>
+      <div class="v${i === 6 ? " wrap" : ""}" title="${esc(v)}">${esc(v)}</div></div>`).join("") : "";
+
+  // the override form mirrors what is actually set, not the effective value
+  $("i-mem").value = inst && inst.memory_set ? inst.memory_set : "";
+  $("i-mem").placeholder = inst ? String(inst.memory_mb) : "";
+  $("i-w").value = inst && inst.width ? inst.width : "";
+  $("i-h").value = inst && inst.height ? inst.height : "";
+  $("i-w").placeholder = "default"; $("i-h").placeholder = "default";
+  $("i-jvm").value = d ? d.jvm_args.join("\n") : (inst ? inst.jvm_args.join("\n") : "");
+  $("i-ovhint").textContent = inst && inst.memory_set
+    ? `Heap is overridden here: ${inst.memory_set} MiB. Clear the box to inherit.`
+    : "Empty means it inherits the launcher default.";
+
+  // mods
+  const mods = d ? d.mods : null;
+  $("mods-list").innerHTML = mods === null
+    ? (state.detailError
+        ? `<div class="empty"><b>The folder could not be read</b>${esc(state.detailError)}</div>`
+        : `<div class="empty">Reading <code>mods\\</code>\u2026</div>`)
+    : mods.length ? mods.map(m => `
+      <div class="lrow${m.enabled ? "" : " dim"}"><div class="nm" title="${esc(m.file)}">${esc(m.file)}</div>
+        <div class="sz">${esc(m.size)}</div>
+        <button class="toggle${m.enabled ? " on" : ""}" data-mod="${esc(m.file)}"
+          title="${m.enabled ? "Disable" : "Enable"}" aria-label="${m.enabled ? "Disable" : "Enable"}"><i></i></button>
+      </div>`).join("")
+    : `<div class="empty"><b>No mods yet</b>Drop <code>.jar</code> files into <code>mods\\</code> and rescan, or copy an installation that already has them.</div>`;
+  $("mods-list").querySelectorAll(".toggle").forEach(b => {
+    b.onclick = () => {
+      const inst = current(); if (!inst) return;
+      b.disabled = true;
+      send({ cmd: "mod", name: inst.name, file: b.dataset.mod, enabled: !b.classList.contains("on") });
+    };
+  });
+
+  // worlds
+  const worlds = d ? d.worlds : null;
+  $("worlds-list").innerHTML = worlds === null
+    ? (state.detailError
+        ? `<div class="empty"><b>The folder could not be read</b>${esc(state.detailError)}</div>`
+        : `<div class="empty">Reading <code>saves\\</code>\u2026</div>`)
+    : worlds.length ? worlds.map(w => `
+      <div class="wrow"><div class="nm" title="${esc(w.name)}">${esc(w.name)}</div>
+        <div class="sz">${esc(w.last_played)}</div>
+        <div class="go">${esc(w.size)}</div>
+        <div class="acts"><button class="ghost" data-wbackup="${esc(w.name)}">Backup</button>
+        <button class="danger" data-wtrash="${esc(w.name)}">Trash</button></div>
+      </div>`).join("")
+    : `<div class="empty"><b>No worlds yet</b>A world appears here once the game has saved one inside this installation.</div>`;
+  $("worlds-list").querySelectorAll("[data-wbackup]").forEach(b => {
+    b.onclick = () => {
+      const inst = current(); if (!inst) return;
+      b.disabled = true; b.textContent = "Copying\u2026";
+      send({ cmd: "world", name: inst.name, world: b.dataset.wbackup, action: "backup" });
+    };
+  });
+  $("worlds-list").querySelectorAll("[data-wtrash]").forEach(b => {
+    b.onclick = () => {
+      const inst = current(); if (!inst) return;
+      // Two clicks, because a world is the one thing here that cannot be
+      // rebuilt. The second click has to land within three seconds.
+      if (!b.dataset.armed) {
+        b.dataset.armed = "1";
+        b.textContent = "Really?";
+        setTimeout(() => {
+          if (!b.dataset.armed) return;
+          delete b.dataset.armed;
+          b.textContent = "Trash";
+        }, 3000);
+        return;
+      }
+      delete b.dataset.armed;
+      b.disabled = true; b.textContent = "Moving\u2026";
+      send({ cmd: "world", name: inst.name, world: b.dataset.wtrash, action: "trash" });
+    };
+  });
+}
+function humanish(bytes) {
+  const u = ["B", "KB", "MB", "GB"]; let i = 0, v = Number(bytes) || 0;
+  while (v >= 1024 && i < u.length - 1) { v /= 1024; i++; }
+  return (i ? v.toFixed(v < 10 ? 1 : 0) : v) + " " + u[i];
+}
+
+/// `nightly-2026-11-19-f00125f` -> `2026-11-19`. A folder without a date keeps
+/// its own name, so nothing is invented.
+function folderDate(folder) {
+  const m = String(folder || "").match(/\d{4}-\d{2}-\d{2}/);
+  return m ? m[0] : "\u2014";
+}
+document.querySelectorAll(".tabs button").forEach(b => {
+  b.onclick = () => {
+    document.querySelectorAll(".tabs button").forEach(x => x.classList.remove("on"));
+    b.classList.add("on");
+    ["overview", "mods", "worlds"].forEach(p =>
+      $("pane-" + p).classList.toggle("on", p === b.dataset.itab));
+    if (b.dataset.itab !== "overview") requestDetail(true);
+  };
+});
+
+/* ── settings ───────────────────────────────────────────── */
+/* ── horizon ────────────────────────────────────────────── */
+function refreshHorizon(force) {
+  const h = state.horizon;
+  if (h.loading) return;
+  // One request per visit at most, unless the user asked again: GitHub's API is
+  // rate-limited per address and this PC shares one.
+  if (!force && h.asked) return;
+  h.asked = true;
+  h.loading = true;
+  renderHorizon();
+  send({ cmd: "horizon" });
+}
+
+/// Ask the preparer which installed builds are ready. One process per build,
+/// once per session: `--check` reads no game files and runs no Java, but it is
+/// still a process and there is no reason to repeat it.
+function checkHorizon() {
+  const h = state.horizon;
+  if (h.checked || h.preparing || h.installing) return;
+  h.checked = true;
+  (h.installed || []).forEach(folder => send({ cmd: "horizon-check", folder }));
+}
+
+function renderHorizon() {
+  const h = state.horizon;
+  const installed = new Set(h.installed || []);
+  const ready = new Set(h.ready || []);
+  const busy = h.installing || h.preparing;
+
+  // The rolling `nightly` tag moves every day, so yesterday's build is not in
+  // today's list — but it is still on this disk and still playable. Rows are
+  // the union of the release list and what is installed or in flight, so a
+  // progress bar can never point at a row that does not exist.
+  const known = new Set((h.builds || []).map(b => b.folder));
+  const extra = [...new Set([...(h.installed || []), h.installing, h.preparing].filter(Boolean))]
+    .filter(f => !known.has(f))
+    .map(f => ({ folder: f, tag: "on this disk", sha: null, size: null, date: folderDate(f) }));
+  const rows = [...(h.builds || []), ...extra];
+
+  $("hz-builds").innerHTML = rows.length
+    ? rows.map(b => {
+        const has = installed.has(b.folder);
+        const installing = h.installing === b.folder;
+        const preparing = h.preparing === b.folder;
+        const bits = [b.tag];
+        if (b.sha) bits.push(b.sha);
+        bits.push(b.size ? humanish(b.size) : "size unknown");
+        let tail;
+        // The meta line never changes while work runs; the running message gets
+        // its own line under it, so the row still says which build it is.
+        let note = "";
+        if (installing) {
+          const known = h.total && h.total > 0;
+          const pct = known ? Math.min(100, Math.round((h.done || 0) / h.total * 100)) : 0;
+          tail = `<div class="hzbar${known ? "" : " unknown"}"><i style="width:${known ? pct + "%" : ""}"></i></div>
+            <button class="ghost" data-hzcancel="1" type="button">Cancel</button>`;
+          note = `<div class="hznote" title="${esc(h.note || "")}">${esc(h.note || "Working\u2026")}</div>`;
+        } else if (preparing) {
+          const f = h.prepareFraction;
+          const bytes = h.prepareBytes;
+          const known = bytes ? bytes.total > 0 : (typeof f === "number" && f > 0);
+          const pct = bytes
+            ? (bytes.total ? Math.min(100, Math.round(bytes.done / bytes.total * 100)) : 0)
+            : (typeof f === "number" ? Math.round(f * 100) : 0);
+          tail = `<div class="hzbar${known ? "" : " unknown"}"><i style="width:${known ? pct + "%" : ""}"></i></div>
+            <button class="ghost" data-hzcancel="1" type="button">Cancel</button>`;
+          note = `<div class="hznote" title="${esc(h.prepareNote || "")}">${esc(h.prepareNote || "Preparing\u2026")}${known ? ` \u00b7 ${pct}%` : ""}</div>`;
+        } else if (!has) {
+          tail = `<button class="ghost" data-hzinstall="${esc(b.folder)}" type="button">Install</button>`;
+        } else if (ready.has(b.folder)) {
+          tail = `<span class="chip">Ready</span>
+            <button class="ghost" data-hzplay="${esc(b.folder)}" type="button">Play</button>`;
+        } else {
+          tail = `<span class="chip dim">Installed</span>
+            <button class="ghost" data-hzprepare="${esc(b.folder)}" type="button">Prepare</button>`;
+        }
+        return `<div class="hzrow">
+          <div class="hzwhen">${esc(b.date || "\u2014")}</div>
+          <div class="hzmid">
+            <div class="hzmeta" title="${esc(b.folder)}">${esc(bits.join(" \u00b7 "))}</div>
+            ${note}
+          </div>
+          ${tail}
+        </div>`;
+      }).join("")
+    : `<div class="mono-row dim"><span>${h.loading ? "Asking GitHub\u2026" : "No builds yet \u2014 press Refresh."}</span></div>`;
+
+  $("hz-builds").querySelectorAll("[data-hzinstall]").forEach(b => {
+    b.onclick = () => startHorizonInstall(b.dataset.hzinstall);
+  });
+  $("hz-builds").querySelectorAll("[data-hzprepare]").forEach(b => {
+    b.onclick = () => startHorizonPrepare(b.dataset.hzprepare);
+  });
+  $("hz-builds").querySelectorAll("[data-hzplay]").forEach(b => {
+    b.onclick = () => startHorizonPlay(b.dataset.hzplay, "New World");
+  });
+  $("hz-builds").querySelectorAll("[data-hzcancel]").forEach(b => {
+    b.onclick = () => { b.disabled = true; b.textContent = "Stopping\u2026"; send({ cmd: "horizon-cancel" }); };
+  });
+
+  const banner = $("hz-banner");
+  if (h.installError) {
+    banner.hidden = false;
+    banner.className = "banner bad";
+    banner.innerHTML = `<b>${h.preparingError ? "Prepare failed" : "Install failed"}</b>${esc(h.installError)}`;
+  } else if (h.error) {
+    banner.hidden = false;
+    banner.className = "banner bad";
+    banner.innerHTML = `<b>Could not read the build list</b>${esc(h.error)}`;
+  } else if (h.warning) {
+    banner.hidden = false;
+    banner.className = "banner";
+    banner.innerHTML = `<b>Release feed, not the API</b>${esc(h.warning)}`;
+  } else {
+    banner.hidden = true;
+  }
+
+  $("hz-lede").textContent = h.loading
+    ? "Asking GitHub\u2026"
+    : h.installing
+      ? `${h.note || "Installing"}${h.total ? ` \u00b7 ${humanish(h.done || 0)} of ${humanish(h.total)}` : ""}`
+      : h.preparing
+        ? `${h.prepareNote || "Preparing"}${typeof h.prepareFraction === "number" ? ` \u00b7 ${Math.round(h.prepareFraction * 100)}%` : ""}`
+        : rows.length
+          ? `${(h.builds || []).length} build${(h.builds || []).length === 1 ? "" : "s"} \u00b7 newest first${extra.length ? ` \u00b7 ${extra.length} on disk` : ""}`
+          : "Newest first, straight from GitHub.";
+  $("hz-refresh").disabled = !!h.loading || !!busy;
+  $("hz-refresh").textContent = h.loading ? "Asking\u2026" : "Refresh";
+
+  $("hz-source").textContent = h.source === "api" ? "GitHub API"
+    : h.source === "feed" ? "release feed"
+    : h.source === "cache" ? "saved list"
+    : "\u2014";
+  $("hz-root").textContent = h.root || "";
+
+  $("hz-engine").innerHTML = `
+    <div class="mono-row"><span>Engine</span><b>Horizon (Rust)</b></div>
+    <div class="mono-row"><span>Account</span><b>None needed</b></div>
+    <div class="mono-row"><span>Player name</span><b>${esc((state.settings && state.settings.user) || "Player")}</b></div>
+    <div class="mono-row dim"><span>Runs</span><b>${installed.size} build${installed.size === 1 ? "" : "s"} installed</b></div>
+    <button class="ghost sm" id="hz-name-edit" type="button" style="margin-top:10px">Change the name</button>`;
+  const editName = $("hz-name-edit");
+  if (editName) editName.onclick = () => { go("settings"); setTimeout(() => $("set-user").focus(), 40); };
+  $("hz-installed").innerHTML = installed.size
+    ? [...installed].map(f =>
+        `<div class="mono-row" title="${esc(f)}"><span>${esc(f)}</span><b>${ready.has(f) ? "ready" : "needs prepare"}</b></div>`
+      ).join("")
+    : `<div class="mono-row dim"><span>Nothing installed yet</span></div>`;
+
+  renderWorlds();
+}
+
+/// The worlds list, and the backups under it.
+///
+/// `horizon-ctl worlds` reads the list from the running game, so with no dive
+/// open there is nothing to list: the note says so instead of showing "0 worlds",
+/// which would read as "you have no worlds".
+function renderWorlds() {
+  const h = state.horizon;
+  const rows = h.worlds || [];
+  const raw = h.worldsError || "";
+  // ctl's connection error is accurate and unreadable. The page says what to do
+  // and keeps ctl's words in the tooltip.
+  const friendly = /cannot connect/i.test(raw)
+    ? "Start a dive first \u2014 Horizon reads its worlds from the running game."
+    : raw;
+  const note = raw
+    ? friendly
+    : h.worldsLoading
+      ? "Asking the game\u2026"
+      : rows.length
+        ? `${rows.length} world${rows.length === 1 ? "" : "s"} in this save folder`
+        : "No worlds yet \u2014 play one and it will appear here.";
+  $("hz-worlds-lede").textContent = note;
+  $("hz-worlds-lede").title = raw;
+  $("hz-worlds-refresh").disabled = !!h.worldsLoading;
+  $("hz-worlds-refresh").textContent = h.worldsLoading ? "Asking\u2026" : "Refresh";
+
+  $("hz-worlds").innerHTML = rows.length
+    ? rows.map(w => {
+        const armed = h.armed === w.folder;
+        // The folder is the identity, the name is only a label: a restored copy
+        // carries the original's name, so two rows can read the same. Show the
+        // folder whenever it says something the name does not.
+        const bits = [w.mode || "survival", w.version ? "v" + w.version : "", w.played || "never"]
+          .filter(Boolean).join(" \u00b7 ");
+        const folderNote = w.folder && w.folder !== w.name
+          ? `<div class="hznote">folder ${esc(w.folder)}</div>`
+          : "";
+        return `<div class="hzrow">
+          <div class="hzwhen">${esc(w.name || w.folder)}</div>
+          <div class="hzmid">
+            <div class="hzmeta">${esc(bits)}</div>
+            ${folderNote}
+            ${w.corrupted ? `<div class="hznote">corrupted \u2014 the game will refuse it</div>` : ""}
+            ${w.by_ctl ? "" : `<div class="hznote">the folder has a space, so Horizon's ctl cannot take it; the launcher zips it</div>`}
+          </div>
+          <div class="hzacts">
+            <button class="ghost" data-hzbackup="${esc(w.folder)}" type="button">Backup</button>
+            <button class="ghost" data-hzshot="1" type="button">Screenshot</button>
+            <button class="ghost${armed ? " danger" : ""}" data-hzdel="${esc(w.folder)}" type="button">${armed ? "Delete for good" : "Delete"}</button>
+          </div>
+        </div>`;
+      }).join("")
+    : `<div class="mono-row dim"><span>${h.worldsError ? "Start a dive, then press Refresh." : "\u2014"}</span></div>`;
+
+  $("hz-worlds").querySelectorAll("[data-hzbackup]").forEach(b => {
+    b.onclick = () => {
+      b.disabled = true;
+      b.textContent = "Zipping\u2026";
+      send({ cmd: "horizon-backup", folder: b.dataset.hzbackup });
+    };
+  });
+  $("hz-worlds").querySelectorAll("[data-hzshot]").forEach(b => {
+    b.onclick = () => { b.disabled = true; send({ cmd: "horizon-shot" }); };
+  });
+  $("hz-worlds").querySelectorAll("[data-hzdel]").forEach(b => {
+    b.onclick = () => {
+      const folder = b.dataset.hzdel;
+      if (state.horizon.armed === folder) {
+        state.horizon.armed = null;
+        b.disabled = true;
+        b.textContent = "Deleting\u2026";
+        send({ cmd: "horizon-delete", folder });
+        return;
+      }
+      state.horizon.armed = folder;
+      renderWorlds();
+      setTimeout(() => {
+        if (state.horizon.armed === folder) { state.horizon.armed = null; renderWorlds(); }
+      }, 5000);
+    };
+  });
+
+  const backups = h.backups || [];
+  $("hz-backups").innerHTML = backups.length
+    ? backups.map(b => `<div class="hzrow">
+        <div class="hzwhen">${humanish(b.bytes)}</div>
+        <div class="hzmid"><div class="hzmeta" title="${esc(b.file)}">${esc(b.file)}</div></div>
+        <button class="ghost" data-hzrestore="${esc(b.file)}" type="button">Restore</button>
+      </div>`).join("")
+    : `<div class="mono-row dim"><span>No backups yet \u2014 press Backup on a world.</span></div>`;
+  $("hz-backups").querySelectorAll("[data-hzrestore]").forEach(b => {
+    b.onclick = () => {
+      b.disabled = true;
+      b.textContent = "Restoring\u2026";
+      send({ cmd: "horizon-restore", file: b.dataset.hzrestore });
+    };
+  });
+}
+
+function refreshWorlds() {
+  const h = state.horizon;
+  h.worldsLoading = true;
+  h.worldsError = null;
+  renderWorlds();
+  send({ cmd: "horizon-worlds" });
+}
+
+function renderSettings() {
+  const s = state.settings;
+  if (!s) return;
+  $("set-user").value = s.user || "";
+  $("set-mem").value = s.memory_mb || "";
+  $("set-jvm").value = (s.jvm_args || []).join("\n");
+  $("set-shared").value = s.shared || "";
+  $("set-uuid").textContent = s.uuid || "\u2014";
+  $("set-uuid").title = s.uuid || "";
+  $("set-root").textContent = s.root || "\u2014";
+  $("set-config").textContent = s.config || "\u2014";
+  $("set-root").title = s.root || "";
+  $("set-config").title = s.config || "";
+  $("set-err").textContent = "";
+}
+function settingsPatch() {
+  const jvm = $("set-jvm").value.split("\n").map(x => x.trim()).filter(Boolean);
+  const mem = parseInt($("set-mem").value, 10);
+  return {
+    user: $("set-user").value.trim(),
+    memory_mb: Number.isFinite(mem) && mem > 0 ? mem : 4096,
+    jvm_args: jvm,
+    shared: $("set-shared").value.trim()
+  };
+}
+
+/* ── account ────────────────────────────────────────────── */
+function renderAccount() {
+  const s = state.settings || {};
+  const name = s.user || state.user || "Player";
+  $("acc-name").textContent = name;
+  $("acc-initial").textContent = (name[0] || "P").toUpperCase();
+  $("acc-uuid").textContent = s.uuid || "offline \u00b7 no UUID resolved yet";
+  $("acc-uuid").title = s.uuid || "";
+  renderSkin();
+}
+
+/* The head is cropped out of the sheet with background-position: region (8,8)
+   of a 64x64 skin, scaled 7x. No image decoding, no canvas, no 3D. */
+function renderSkin() {
+  const s = state.skin;
+  const has = !!(s && s.data);
+  const head = $("skin-head");
+  head.classList.toggle("on", has);
+  head.style.backgroundImage = has ? `url(data:image/png;base64,${s.data})` : "none";
+  $("skin-title").textContent = has
+    ? `Skin loaded \u00b7 ${s.width}\u00d7${s.height}`
+    : "No skin yet \u2014 every player is Steve";
+  if (has) {
+    const where = s.applied && s.applied.length
+      ? `On ${s.applied.join(", ")}.`
+      : "Saved, but no installation has the pack enabled.";
+    $("skin-desc").textContent = `${where} The game picks the arm model from the offline UUID, and this pack `
+      + "replaces the default texture, so it also covers other players who have no skin of their own.";
+  } else {
+    $("skin-desc").textContent = "A 64\u00d764 PNG (or a multiple, like 128\u00d7128). Offline there is no skin "
+      + "server to ask, so the launcher writes a small resource pack that replaces the default player "
+      + "texture instead.";
+  }
+  $("skin-clear").disabled = !has;
+}
+
+
+/* ── actions ────────────────────────────────────────────── */
+function start() {
+  const inst = current();
+  if (!inst || inst.missing || state.launching) return;
+  state.launching = true;
+  state.spawning = true;
+  $("lname").textContent = "· " + inst.name;
+  $("stage").textContent = "Checking the data store…";
+  $("scrim").classList.add("on");
+  $("cancel").disabled = false;
+  $("cancel").textContent = "Cancel";
+  render();
+  send({ cmd: "play", name: inst.name });
+}
+
+$("play").onclick = start;
+$("pick").onclick = () => {
+  if (state.instances.length < 2) return toast("Only one installation so far.");
+  const n = state.instances.length;
+  const at = state.instances.findIndex(i => i.name === state.selected);
+  state.selected = state.instances[(at + 1) % n].name;
+  render();
+};
+$("folder").onclick = () => { const i = current(); if (i) send({ cmd: "folder", name: i.name }); };
+$("refresh").onclick = () => { send({ cmd: "refresh" }); toast("Rescanning instances…"); };
+$("add").onclick = () => openCreate();
+$("add2").onclick = () => openCreate();
+$("store-btn").onclick = () => send({ cmd: "store" });
+$("news-more").onclick = () => go("news");
+$("hz-refresh").onclick = () => refreshHorizon(true);
+$("hz-worlds-refresh").onclick = () => refreshWorlds();
+$("account").onclick = () => go("account");
+$("min").onclick = () => send({ cmd: "min" });
+$("close").onclick = () => send({ cmd: "close" });
+
+/* instance screen */
+$("i-play").onclick = start;
+$("i-folder").onclick = () => { const i = current(); if (i) send({ cmd: "folder", name: i.name }); };
+$("i-trash").onclick = () => { const i = current(); if (i) askTrash(i.name); };
+$("mods-folder").onclick = () => { const i = current(); if (i) send({ cmd: "folder", name: i.name, sub: "mods" }); };
+$("worlds-folder").onclick = () => { const i = current(); if (i) send({ cmd: "folder", name: i.name, sub: "saves" }); };
+$("i-save").onclick = () => {
+  const inst = current();
+  if (!inst) return;
+  const n = (id) => { const v = parseInt($(id).value, 10); return Number.isFinite(v) && v > 0 ? v : 0; };
+  $("i-err").textContent = "";
+  $("i-save").disabled = true;
+  $("i-save").textContent = "Saving\u2026";
+  send({
+    cmd: "save_instance", name: inst.name,
+    patch: {
+      memory_mb: n("i-mem"), width: n("i-w"), height: n("i-h"),
+      jvm_args: $("i-jvm").value.split("\n").map(x => x.trim()).filter(Boolean)
+    }
+  });
+};
+
+/* settings screen */
+$("set-save").onclick = () => {
+  $("set-err").textContent = "";
+  $("set-save").disabled = true;
+  $("set-save").textContent = "Saving\u2026";
+  send({ cmd: "save_settings", patch: settingsPatch() });
+};
+$("set-reload").onclick = () => send({ cmd: "reload_settings" });
+$("set-browse").onclick = () => send({ cmd: "pick", what: "shared" });
+$("set-open-root").onclick = () => send({ cmd: "open", what: "root" });
+$("set-open-config").onclick = () => send({ cmd: "open", what: "config" });
+$("acc-edit").onclick = () => { go("settings"); setTimeout(() => $("set-user").focus(), 40); };
+$("acc-open").onclick = () => send({ cmd: "open", what: "root" });
+$("skin-pick").onclick = () => {
+  $("skin-pick").disabled = true;
+  $("skin-pick").textContent = "Choosing\u2026";
+  send({ cmd: "pick", what: "skin" });
+};
+$("skin-clear").onclick = () => {
+  $("skin-clear").disabled = true;
+  send({ cmd: "clear_skin" });
+};
+$("cancel").onclick = () => {
+  if ($("cancel").disabled) return;
+  $("cancel").disabled = true;
+  $("cancel").textContent = "Cancelling…";
+  send({ cmd: "cancel" });
+};
+$("fail-close").onclick = () => failcard(false);
+$("fail-open").onclick = () => send({ cmd: "open_log" });
+$("live-show").onclick = () => send({ cmd: "show" });
+let quitTimer = null;
+$("live-quit").onclick = () => {
+  if ($("live-quit").disabled) return;
+  $("live-quit").disabled = true;
+  $("live-quit").textContent = "Quitting\u2026";
+  send({ cmd: "quit" });
+  // A kill can fail (the pid is gone, or the process hangs). Say so instead of
+  // leaving a dead button behind.
+  quitTimer = setTimeout(() => {
+    if (!$("live").classList.contains("on")) return;
+    $("live-quit").disabled = false;
+    $("live-quit").textContent = "Quit game";
+    toast("The game did not close on its own. Try again, or close its window.");
+  }, 15000);
+};
+
+/* The in-game card. Appears when Rust says a dive is running — either because
+   the boot payload carried one, or because the page was rebuilt on restore. */
+let liveTimer = null;
+function liveUp(session) {
+  clearInterval(liveTimer);
+  clearTimeout(quitTimer);
+  state.session = session || null;
+  state.launching = !!session || state.spawning;
+  $("live").classList.toggle("on", !!session);
+  $("live-quit").disabled = false;
+  $("live-quit").textContent = "Quit game";
+  if (typeof render === "function") render();
+  if (!session) return;
+  $("live-name").textContent = session.name;
+  const tick = () => {
+    const secs = Math.max(0, Math.floor(Date.now() / 1000 - session.started));
+    const h = Math.floor(secs / 3600), m = Math.floor((secs % 3600) / 60), s = secs % 60;
+    const two = (n) => String(n).padStart(2, "0");
+    $("live-clock").textContent = h ? `${h}:${two(m)}:${two(s)}` : `${two(m)}:${two(s)}`;
+  };
+  // `started` is 0 only if the machine clock is unusable: show a clock, not a lie.
+  if (!session.started) {
+    $("live-clock").textContent = "--:--";
+    return;
+  }
+  tick();
+  liveTimer = setInterval(tick, 1000);
+}
+document.querySelectorAll(".nav button").forEach(b => {
+  b.onclick = () => go(b.dataset.nav === "servers" ? "inst" : b.dataset.nav);
+});
+
+/* drag the frameless window */
+$("bar").addEventListener("mousedown", (e) => {
+  if (e.button !== 0) return;
+  if (e.target.closest("button")) return;
+  send({ cmd: "drag" });
+});
+
+function failcard(on) {
+  $("fail").classList.toggle("on", on);
+  $("failscreen").classList.toggle("on", on);
+}
+
+/* ── new installation ───────────────────────────────────── */
+function dialog(id, on) {
+  ["dlg", "kill"].forEach(x => $(x).classList.toggle("on", on && x === id));
+  $("sheet").classList.toggle("on", on);
+}
+
+/* A fresh name has to be free to begin with, or the first Create collides
+   with a folder nobody remembers making. */
+function freeName(base) {
+  const taken = new Set(state.instances.map(i => i.name.toLowerCase()));
+  const wanted = base || "New installation";
+  if (!taken.has(wanted.toLowerCase())) return wanted;
+  let n = 2;
+  while (taken.has(`${wanted} ${n}`.toLowerCase())) n++;
+  return `${wanted} ${n}`;
+}
+
+/* The version box accepts anything: an id that is not on disk yet simply
+   downloads on the first Play, so say so instead of pretending it is ready. */
+function hintCreate() {
+  const version = $("new-ver").value.trim();
+  const known = state.versions.includes(version);
+  note(version && !known
+    ? `${version} is not downloaded yet \u2014 the first Play fetches it.`
+    : "", true);
+}
+
+function note(text, soft) {
+  const el = $("new-note");
+  el.textContent = text;
+  el.classList.toggle("soft", !!soft);
+}
+
+function openCreate() {
+  const inst = current();
+  const version = inst ? inst.version : (state.versions[0] || "");
+  $("new-ver").value = version;
+  state.autoName = freeName(version);
+  $("new-name").value = state.autoName;
+  note("");
+  $("new-from").innerHTML = [`<option value="">Blank &mdash; nothing copied</option>`]
+    .concat(state.instances.map(i =>
+      `<option value="${esc(i.name)}">Copy of ${esc(i.name)}</option>`))
+    .join("");
+  $("new-mods").checked = false;
+  syncModsBox();
+  $("new-ok").disabled = false;
+  $("new-ok").textContent = "Create";
+  hintCreate();
+  dialog("dlg", true);
+  setTimeout(() => { $("new-name").focus(); $("new-name").select(); }, 40);
+}
+
+/* Copying an installation already carries its mods; the version-folder
+   checkbox would then do nothing, so it is disabled rather than lying. */
+function syncModsBox() {
+  const copying = !!$("new-from").value;
+  $("new-mods-wrap").classList.toggle("off", copying);
+  $("new-mods").disabled = copying;
+  if (copying) $("new-mods").checked = false;
+}
+
+function submitCreate() {
+  const name = $("new-name").value.trim();
+  const version = $("new-ver").value.trim();
+  if (!name) { note("It needs a name."); return; }
+  if (!version) { note("A Minecraft version is required."); return; }
+  if (state.instances.some(i => i.name.toLowerCase() === name.toLowerCase())) {
+    note(`"${name}" already exists.`);
+    return;
+  }
+  note("");
+  $("new-ok").disabled = true;
+  $("new-ok").textContent = "Creating\u2026";
+  send({
+    cmd: "create", name, version,
+    from: $("new-from").value,
+    with_mods: $("new-mods").checked && !$("new-from").value
+  });
+}
+
+$("new-cancel").onclick = () => dialog(null, false);
+$("new-ok").onclick = submitCreate;
+$("new-from").addEventListener("change", syncModsBox);
+$("new-name").addEventListener("keydown", (e) => { if (e.key === "Enter") submitCreate(); });
+$("new-ver").addEventListener("keydown", (e) => { if (e.key === "Enter") submitCreate(); });
+/* While the name is still the one we suggested, follow the version. */
+$("new-ver").addEventListener("input", () => {
+  const field = $("new-name");
+  if (field.value.trim() === (state.autoName || "")) {
+    state.autoName = freeName($("new-ver").value.trim());
+    field.value = state.autoName;
+  }
+  hintCreate();
+});
+$("sheet").onclick = () => dialog(null, false);
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && $("sheet").classList.contains("on")) dialog(null, false);
+});
+
+/* ── move to trash ──────────────────────────────────────── */
+function askTrash(name) {
+  state.pendingTrash = name;
+  $("kill-why").textContent =
+    `"${name}" moves into trash\\ inside the launcher folder. Nothing is erased; ` +
+    `drag it back out to keep it.`;
+  $("kill-ok").disabled = false;
+  $("kill-ok").textContent = "Move to trash";
+  dialog("kill", true);
+}
+
+$("kill-cancel").onclick = () => { state.pendingTrash = null; dialog(null, false); };
+$("kill-ok").onclick = () => {
+  if (!state.pendingTrash) return;
+  $("kill-ok").disabled = true;
+  $("kill-ok").textContent = "Moving\u2026";
+  send({ cmd: "trash", name: state.pendingTrash });
+};
+
+let toastTimer = null;
+function toast(text) {
+  const el = $("toast");
+  el.textContent = text;
+  el.classList.add("on");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove("on"), 3200);
+}
+
+/* ── bridge from Rust ───────────────────────────────────── */
+
+/* One payload shape feeds the first paint and every refresh, so a save can
+   never leave half the window stale. */
+function hydrate(p) {
+  if (p.page) state.page = p.page;
+  if (p.user) { state.user = p.user; $("who").textContent = p.user; }
+  if (p.java) state.java = p.java;
+  if (p.skin !== undefined) { state.skin = p.skin; renderSkin(); }
+  if (p.versions) {
+    state.versions = p.versions;
+    $("ver-list").innerHTML = state.versions.map(v => `<option value="${esc(v)}">`).join("");
+  }
+  if (p.instances) {
+    state.instances = p.instances;
+    // Preselect the dive you last took, not whatever sorts first.
+    const recent = state.instances
+      .filter(i => i.last_played)
+      .sort((a, b) => b.last_played.localeCompare(a.last_played))[0];
+    if (!state.instances.some(i => i.name === state.selected)) state.selected = null;
+    state.selected = state.selected || (recent ? recent.name : (state.instances[0] ? state.instances[0].name : null));
+    if (state.detail && !state.instances.some(i => i.name === state.detail.view.name)) state.detail = null;
+  }
+  if (p.settings) {
+    state.settings = p.settings;
+    if (p.settings.user) { state.user = p.settings.user; $("who").textContent = state.user; }
+  }
+  if (typeof p.shared === "string") {
+    const parts = p.shared.split(/[\\/]/).filter(Boolean);
+    $("store-path").textContent = p.shared ? parts[parts.length - 1] : "not configured";
+    $("store-path").title = p.shared;
+  }
+  if (p.horizon) {
+    if (p.horizon.builds && p.horizon.builds.length) {
+      state.horizon.builds = p.horizon.builds;
+      if (!state.horizon.source) state.horizon.source = "cache";
+    }
+    state.horizon.installed = p.horizon.installed || [];
+    state.horizon.root = p.horizon.root || state.horizon.root;
+  }
+  if (p.version) {
+    $("foot").textContent = `Launcher ${p.version} · Unofficial`;
+    $("foot2").textContent = `Launcher ${p.version} · Unofficial`;
+  }
+  render();
+  renderNews();
+  renderInst();
+  renderHorizon();
+  renderSettings();
+  renderAccount();
+
+  // Automation hooks, named by `MCL_HORIZON_INSTALL` / `MCL_HORIZON_PREPARE`.
+  // They issue the same commands the buttons issue; they exist so a long action
+  // can be started without clicking a row that may have moved.
+  if (p.autoInstall) startHorizonInstall(p.autoInstall);
+  if (p.autoPrepare) startHorizonPrepare(p.autoPrepare);
+  if (p.autoPlay) startHorizonPlay(p.autoPlay, p.autoWorld || "New World");
+}
+
+function startHorizonInstall(folder) {
+  const h = state.horizon;
+  h.installing = folder;
+  h.stage = "start";
+  h.note = "Starting\u2026";
+  h.done = 0;
+  h.total = null;
+  h.installError = null;
+  renderHorizon();
+  send({ cmd: "horizon-install", folder });
+}
+
+function startHorizonPrepare(folder) {
+  const h = state.horizon;
+  h.preparing = folder;
+  h.prepareFraction = null;
+  h.prepareBytes = null;
+  h.prepareNote = "Checking the resources\u2026";
+  h.installError = null;
+  renderHorizon();
+  send({ cmd: "horizon-prepare", folder });
+}
+
+/// Play a ready build. Nothing is docked here: Rust owns the session and the
+/// window goes to the taskbar when the game's own window is up.
+function startHorizonPlay(folder, world) {
+  if (state.launching) return;
+  state.launching = true;
+  state.spawning = true;
+  $("lname").textContent = "\u00b7 Horizon";
+  $("stage").textContent = "Horizon is starting\u2026";
+  $("scrim").classList.add("on");
+  $("cancel").disabled = false;
+  $("cancel").textContent = "Cancel";
+  send({ cmd: "horizon-play", folder, world: world || "New World" });
+}
+
+window.trench = {
+  boot(payload) {
+    hydrate(payload);
+    // A rebuilt page means a dive is already running: show it, do not lie about it.
+    liveUp(payload.session || null);
+    go(state.page);
+    // Whatever happened while the page was gone is replayed, in order.
+    (payload.events || []).forEach(ev => window.trench.event(ev));
+  },
+  event(ev) {
+    if (ev.type === "stage") {
+      $("stage").textContent = ev.text;
+    } else if (ev.type === "exited") {
+      const game = ev.engine === "horizon" ? "Horizon" : "Minecraft";
+      state.spawning = false;
+      state.launching = false;
+      liveUp(null);
+      $("scrim").classList.remove("on");
+      render();
+      renderInst();
+      if (state.page === "horizon") refreshWorlds();
+      if (ev.killed) toast("Dive ended.");
+      else if (ev.code === 0) toast(`${game} closed.`);
+      else {
+        $("fail-why").textContent = `${game} exited with code ${ev.code}. The last lines of the log are below.`;
+        $("fail-log").textContent = ev.tail || "(log empty)";
+        $("fail-log").style.display = "block";
+        $("fail-open").style.display = "";
+        failcard(true);
+      }
+    } else if (ev.type === "cancelled") {
+      state.spawning = false;
+      state.launching = false;
+      liveUp(null);
+      $("scrim").classList.remove("on");
+      render();
+      renderInst();
+      toast("Launch cancelled.");
+    } else if (ev.type === "created") {
+      $("new-ok").disabled = false;
+      $("new-ok").textContent = "Create";
+      if (ev.error) {
+        note(ev.error);
+        return;
+      }
+      dialog(null, false);
+      state.selected = ev.name;
+      toast(`Created “${ev.name}”.` + (ev.note ? " " + ev.note : ""));
+    } else if (ev.type === "picked") {
+      if (ev.what === "skin") {
+        $("skin-pick").disabled = false;
+        $("skin-pick").textContent = "Choose skin…";
+        // Cancelling writes nothing: the stored skin is whatever it already was.
+        if (ev.path) send({ cmd: "apply_skin", path: ev.path });
+      } else if (ev.path && ev.what === "shared") {
+        $("set-shared").value = ev.path;
+        $("set-shared").focus();
+        toast("Store chosen — save settings to apply it.");
+      }
+    } else if (ev.type === "trashed") {
+      // The event names what went; `pendingTrash` only exists on the dialog path.
+      const gone = ev.name || state.pendingTrash;
+      state.pendingTrash = null;
+      dialog(null, false);
+      if (state.selected === gone) state.selected = null;
+      toast(`“${gone}” moved to trash.`);
+    } else if (ev.type === "detail") {
+      state.detail = ev.detail || null;
+      renderInst();
+    } else if (ev.type === "data") {
+      // Every write answers with the same shape: error, or fresh data.
+      if (ev.where === "detail") {
+        if (ev.error) { state.detailError = ev.error; toast(ev.error); }
+        else { state.detailError = null; state.detail = ev.detail || null; }
+        renderInst();
+        return;
+      }
+      if (ev.error) {
+        if (ev.where === "instance") {
+          $("i-err").textContent = ev.error;
+          $("i-save").disabled = false;
+          $("i-save").textContent = "Save";
+        } else if (ev.where === "mod") {
+          toast(ev.error);
+          if (ev.detail) { state.detail = ev.detail; renderInst(); }
+        } else if (ev.where === "world") {
+          toast(ev.error);
+          if (ev.detail) { state.detail = ev.detail; renderInst(); }
+        } else if (ev.where === "skin") {
+          toast(ev.error);
+          $("skin-pick").disabled = false;
+          $("skin-pick").textContent = "Choose skin…";
+          renderSkin();
+        } else {
+          $("set-err").textContent = ev.error;
+          $("set-save").disabled = false;
+          $("set-save").textContent = "Save settings";
+        }
+        return;
+      }
+      if (ev.where === "instance") { $("i-save").disabled = false; $("i-save").textContent = "Save"; }
+      if (ev.where === "settings") { $("set-save").disabled = false; $("set-save").textContent = "Save settings"; }
+      if (ev.where === "skin") { $("skin-pick").disabled = false; $("skin-pick").textContent = "Choose skin…"; }
+      if (ev.payload) hydrate(ev.payload);
+      if (ev.detail) { state.detail = ev.detail; renderInst(); }
+      if (ev.toast) toast(ev.toast);
+    } else if (ev.type === "error") {
+      state.spawning = false;
+      state.launching = false;
+      liveUp(null);
+      $("scrim").classList.remove("on");
+      render();
+      renderInst();
+      $("fail-why").textContent = ev.message;
+      const tail = ev.tail || "";
+      $("fail-log").textContent = tail;
+      $("fail-log").style.display = tail ? "block" : "none";
+      $("fail-open").style.display = ev.log ? "" : "none";
+      failcard(true);
+    } else if (ev.type === "toast") {
+      toast(ev.text);
+    } else if (ev.type === "worlds") {
+      const h = state.horizon;
+      h.worldsLoading = false;
+      h.worldsRunning = !!ev.running;
+      if (ev.rows) { h.worlds = ev.rows; h.worldsError = null; }
+      if (ev.backups) h.backups = ev.backups;
+      if (ev.error) {
+        h.worlds = [];
+        // ctl's own words are the honest reason: "is the game running with --control?"
+        h.worldsError = ev.error;
+      }
+      renderWorlds();
+    } else if (ev.type === "backup") {
+      const h = state.horizon;
+      if (ev.backups) h.backups = ev.backups;
+      if (ev.error) toast(`Backup failed: ${ev.error}`);
+      else toast(`Backed up ${ev.folder} \u00b7 ${humanish(ev.bytes)}${ev.by_ctl ? "" : " (zipped by the launcher)"}`);
+      renderWorlds();
+      refreshWorlds();
+    } else if (ev.type === "restored") {
+      if (ev.error) toast(`Restore failed: ${ev.error}`);
+      else toast(`Restored ${ev.folder}.`);
+      refreshWorlds();
+    } else if (ev.type === "deleted") {
+      if (ev.error) toast(`Delete failed: ${ev.error}`);
+      else toast(`${ev.folder} deleted.`);
+      refreshWorlds();
+    } else if (ev.type === "shot") {
+      if (ev.error) toast(`Screenshot failed: ${ev.error}`);
+      else toast(`Screenshot saved \u00b7 ${ev.width}\u00d7${ev.height}`);
+      renderWorlds();
+    } else if (ev.type === "horizon") {
+      const h = state.horizon;
+      h.loading = false;
+      if (ev.list) {
+        h.builds = ev.list.builds || [];
+        h.source = ev.list.source || "api";
+        h.warning = ev.list.warning || null;
+        h.error = null;
+      }
+      if (ev.error) h.error = ev.error;
+      if (ev.installed) h.installed = ev.installed;
+      if (ev.root) h.root = ev.root;
+      renderHorizon();
+    } else if (ev.type === "hzinstall") {
+      const h = state.horizon;
+      if (ev.note) h.note = ev.note;
+      if (ev.stage) h.stage = ev.stage;
+      if (typeof ev.done === "number") h.done = ev.done;
+      if (typeof ev.total === "number") h.total = ev.total;
+      if (ev.finished) {
+        h.installing = null;
+        h.stage = null;
+        h.note = null;
+        h.done = 0;
+        h.total = null;
+        h.installError = ev.error || null;
+        if (!ev.error && ev.folder) {
+          h.installed = [...new Set([...(h.installed || []), ev.folder])];
+          toast(ev.cancelled ? "Install cancelled." : "Build installed.");
+        }
+        if (ev.cancelled) h.installError = null;
+      }
+      renderHorizon();
+    } else if (ev.type === "hzprepare") {
+      const h = state.horizon;
+      if (ev.kind === "fraction" && typeof ev.value === "number") {
+        h.prepareFraction = ev.value;
+        h.prepareBytes = null;
+      } else if (ev.kind === "bytes") {
+        h.prepareBytes = { done: ev.done || 0, total: ev.total || 0 };
+        if (ev.note) h.prepareNote = `Fetching ${ev.note}`;
+      } else if (ev.note) {
+        h.prepareNote = ev.note;
+      }
+      if (ev.finished) {
+        const folder = ev.folder;
+        h.preparing = null;
+        h.prepareFraction = null;
+        h.prepareBytes = null;
+        h.prepareNote = null;
+        if (ev.ready && folder) {
+          h.ready = [...new Set([...(h.ready || []), folder])];
+          h.installError = null;
+          h.preparingError = false;
+          if (ev.note) toast(ev.note);
+        } else if (!ev.ready && folder) {
+          h.ready = (h.ready || []).filter(f => f !== folder);
+          if (ev.error) {
+            h.installError = ev.error;
+            h.preparingError = true;
+          }
+        }
+        if (ev.cancelled) { h.installError = null; toast("Prepare cancelled."); }
+      }
+      renderHorizon();
+    } else if (ev.type === "boot") {
+      window.trench.boot(ev.payload);
+    }
+  }
+};
+
+render();
+if (window.__BOOT__) window.trench.boot(window.__BOOT__);
+
+/* The window is created hidden and comes out of hiding on this. Two frames,
+   not one: the first is before the compositor has the new pixels, which would
+   show the blank window the hiding is there to avoid. */
+requestAnimationFrame(() => requestAnimationFrame(() => send({ cmd: "ready" })));
+</script>
+</body>
+</html>

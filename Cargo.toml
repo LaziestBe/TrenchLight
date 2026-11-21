@@ -1,0 +1,52 @@
+[package]
+name = "mcl"
+version = "0.5.0"
+edition = "2021"
+description = "A Minecraft Java launcher written in Rust, with isolated instances and offline accounts"
+license = "MIT"
+
+# The 3D world viewer is a second binary in this workspace: `mcl/world` builds
+# `mcl-world.exe` next to the launcher, in the same target directory. It is kept
+# out of the launcher crate on purpose — wgpu must never link into
+# `trenchlight.exe`, or a GPU driver fault takes the launcher down with it.
+[workspace]
+members = ["world"]
+resolver = "2"
+
+[dependencies]
+anyhow = "1"
+clap = { version = "4", features = ["derive"] }
+dirs = "5"
+indicatif = "0.17"
+md-5 = "0.10"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha1 = "0.10"
+sha2 = "0.10"
+ureq = "2.12"
+zip = { version = "2", default-features = false, features = ["deflate"] }
+
+# Trenchlight window. Remove these when the native UI replaces the webview.
+wry = "0.57"
+tao = "0.37"
+# The native folder picker behind Settings > Browse.
+rfd = "0.15"
+
+# Build-time only: stamps the icon and version block into the exes. Nothing of
+# it links into the binaries.
+[build-dependencies]
+winres = "0.1"
+
+[profile.release]
+opt-level = 2
+debug = false
+
+# The game has to be playable in debug too: unoptimised wgpu is unusable, so
+# our own code gets a light pass and every dependency gets the full one. Deps
+# are built once, so their cost lands on the first build only.
+[profile.dev]
+opt-level = 1
+debug = 0
+
+[profile.dev.package."*"]
+opt-level = 3

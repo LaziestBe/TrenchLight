@@ -8,13 +8,13 @@ instances over one shared data store, offline accounts, and a page that runs
 [![License](https://img.shields.io/badge/license-MIT-3AC9CF?style=flat-square&labelColor=0B222F)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Windows%2010%20%7C%2011-3AC9CF?style=flat-square&labelColor=0B222F)](#requirements)
 [![Rust](https://img.shields.io/badge/rust-stable-3AC9CF?style=flat-square&labelColor=0B222F)](https://www.rust-lang.org)
-[![Download](https://img.shields.io/badge/download-0.5.0%20for%20Windows-3AC9CF?style=flat-square&labelColor=0B222F)](https://github.com/LaziestBe/TrenchLight/releases/latest)
+[![Download](https://img.shields.io/badge/download-0.6.0%20for%20Windows-3AC9CF?style=flat-square&labelColor=0B222F)](https://github.com/LaziestBe/TrenchLight/releases/latest)
 
 ![The Trenchlight menu](docs/screenshots/menu.png)
 
 ## Download
 
-**[Trenchlight 0.5.0 — Windows x64 (6.4 MB)](https://github.com/LaziestBe/TrenchLight/releases/latest)**
+**[Trenchlight 0.6.0 — Windows x64 (6.4 MB)](https://github.com/LaziestBe/TrenchLight/releases/latest)**
 — or click **Releases** in the sidebar on the right of this page and take the
 `.zip` from there.
 
@@ -128,7 +128,8 @@ is expected, not a bug.
 
 Horizon is a separate, LGPL-3.0 Minecraft client written in Rust. The Horizon
 page installs a release, prepares its resources, launches it, and manages its
-worlds — **without Horizon's own launcher and without an account**.
+worlds — **without Horizon's own launcher, without an account, and without a
+separate Minecraft install**.
 
 How it stays honest:
 
@@ -157,17 +158,19 @@ anything else.
 | Java that version needs | **25** |
 | Where the pin lives | `research-lock.json` in the installed build folder |
 
-So before **Prepare** will work, that exact version has to exist in the normal
-`%APPDATA%\.minecraft`, installed once and started once:
+So the pinned version has to exist on disk before a build can be set up — and
+the launcher handles that itself, in one click:
 
-- with the official Minecraft launcher — install 26.3, press Play once; or
-- with this launcher — point **Settings → Shared store** at
-  `%APPDATA%\.minecraft`, install 26.3 there, and launch it once.
+- If the official launcher already installed it, that copy in
+  `%APPDATA%\.minecraft` is reused and nothing is downloaded.
+- If it is not there, **Set up** downloads that version — client jar, libraries
+  and assets — into the launcher's own store. No separate Minecraft install, no
+  account, no first vanilla launch.
 
-The launcher finds that folder automatically; there is no path to type. If it is
-missing you get *"no official Minecraft folder found"*. When a future Horizon
-build pins a different version, that version is what it will want — the pin is
-the build's, never yours to choose.
+The first set up takes about ten minutes, most of it Horizon's own data
+generator. Later builds reuse the downloaded files. When a future Horizon build
+pins a different version, that version is what it will fetch — the pin is the
+build's, never yours to choose.
 
 ![The Horizon page](docs/screenshots/horizon.png)
 

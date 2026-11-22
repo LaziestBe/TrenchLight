@@ -193,6 +193,12 @@ enum UserEvent {
     },
     /// One step of a Horizon build install, already shaped for the page.
     HorizonInstall(serde_json::Value),
+    /// The Mojang version list, for the create dialog's suggestions.
+    Versions {
+        latest: Option<String>,
+        list: Vec<String>,
+        error: Option<String>,
+    },
     Drag,
     Minimise,
     Quit,
@@ -392,6 +398,20 @@ fn run() -> Result<()> {
                 UserEvent::Notice(text) => {
                     deliver(&shared, live, json!({ "type": "toast", "text": text }));
                 }
+                UserEvent::Versions {
+                    latest,
+                    list,
+                    error,
+                } => {
+                    let mut event = json!({ "type": "versions", "list": list });
+                    if let Some(latest) = latest {
+                        event["latest"] = json!(latest);
+                    }
+                    if let Some(error) = error {
+                        event["error"] = json!(error);
+                    }
+                    deliver(&shared, live, event);
+                }
                 UserEvent::Horizon { list, error } => {
                     let paths = mcl::horizon::HorizonPaths::at(&shared.app.paths);
                     let mut event = json!({
@@ -443,7 +463,11 @@ fn run() -> Result<()> {
                     }
                 }
                 UserEvent::Drag => {
-                    let _ = window.drag_window();
+                    // A refused drag is silent otherwise: the window simply
+                    // would not move, which reads as a broken app.
+                    if let Err(error) = window.drag_window() {
+                        trace(&format!("drag: drag_window failed: {error}"));
+                    }
                 }
                 UserEvent::Minimise => window.set_minimized(true),
                 UserEvent::Quit => {
@@ -524,6 +548,7 @@ fn page(shared: &Shared) -> String {
     // the <script> tag and blank the window.
     MENU
         .replace("{{FONTS}}", FONTS)
+        .replace("{{VERSION}}", env!("CARGO_PKG_VERSION"))
         .replace("{{BOOT}}", &boot.to_string().replace('<', "\\u003c"))
 }
 
@@ -1240,6 +1265,37 @@ fn build_view(
                 "drag" => {
                     let _ = ipc_proxy.send_event(UserEvent::Drag);
                 }
+                "jserror" => {
+                    trace(&format!("js error: {}", value["v"]));
+                }
+                // The create dialog needs real version names: an empty field on
+                // a fresh store is a dead end that asks the user to guess.
+                "versions" => {
+                    let shared = ipc.clone();
+                    let proxy = ipc_proxy.clone();
+                    std::thread::spawn(move || {
+                        let dl = mcl::download::Downloader::new();
+                        let event = match mcl::manifest::load(&shared.app.paths, &dl, false) {
+                            Ok(manifest) => UserEvent::Versions {
+                                latest: Some(manifest.latest.release.clone()),
+                                list: manifest
+                                    .versions
+                                    .iter()
+                                    .filter(|v| v.kind == "release")
+                                    .take(40)
+                                    .map(|v| v.id.clone())
+                                    .collect(),
+                                error: None,
+                            },
+                            Err(error) => UserEvent::Versions {
+                                latest: None,
+                                list: Vec::new(),
+                                error: Some(short(&error)),
+                            },
+                        };
+                        let _ = proxy.send_event(event);
+                    });
+                }
                 "min" => {
                     let _ = ipc_proxy.send_event(UserEvent::Minimise);
                 }
@@ -1664,12 +1720,32 @@ fn prepare_build(
         }
     }
 
-    let Some(minecraft) = mcl::horizon::official_minecraft_dir() else {
-        let _ = proxy.send_event(UserEvent::HorizonInstall(json!({
-            "type": "hzprepare", "folder": folder, "finished": true,
-            "error": "no official Minecraft folder found; Horizon needs one to import from",
-        })));
-        return;
+    // The preparer converts game files; it will not download the game itself.
+    // So the files must exist before it runs — and nobody should have to
+    // install Minecraft separately first. The official launcher's folder is
+    // used when it already holds this exact version (no download at all);
+    // otherwise the pinned version is fetched into the launcher's own store.
+    let build = paths.build_dir(folder);
+    let pinned = match mcl::horizon::pin(&build) {
+        Ok(pinned) => pinned,
+        Err(error) => {
+            let _ = proxy.send_event(UserEvent::HorizonInstall(json!({
+                "type": "hzprepare", "folder": folder, "finished": true,
+                "ready": false, "error": short(&error),
+            })));
+            return;
+        }
+    };
+    let minecraft = match game_source(shared, proxy, folder, &pinned.version) {
+        Ok(dir) => dir,
+        Err(error) => {
+            let cancelled = shared.install_cancel.load(Ordering::SeqCst);
+            let _ = proxy.send_event(UserEvent::HorizonInstall(json!({
+                "type": "hzprepare", "folder": folder, "finished": true,
+                "cancelled": cancelled, "ready": false, "error": error,
+            })));
+            return;
+        }
     };
 
     // The pinned server jar is one file the preparer refuses to fetch itself.
@@ -1720,6 +1796,46 @@ fn prepare_build(
         }),
     };
     let _ = proxy.send_event(UserEvent::HorizonInstall(event));
+}
+
+/// A Minecraft folder `horizon-prepare` can convert.
+///
+/// The official launcher's folder is reused when it already holds the pinned
+/// version — a complete 26.3 on disk means no download at all. Otherwise the
+/// pinned version is downloaded into the launcher's own store, so a machine
+/// that never had Minecraft still gets a working install in one click.
+fn game_source(
+    shared: &Arc<Shared>,
+    proxy: &EventLoopProxy<UserEvent>,
+    folder: &str,
+    version: &str,
+) -> Result<std::path::PathBuf, String> {
+    if let Some(official) = mcl::horizon::official_minecraft_dir() {
+        let jar = official
+            .join("versions")
+            .join(version)
+            .join(format!("{version}.jar"));
+        if jar.is_file() {
+            let _ = proxy.send_event(UserEvent::HorizonInstall(json!({
+                "type": "hzprepare", "folder": folder, "kind": "message",
+                "note": format!("Using Minecraft {version} from {}", official.display()),
+            })));
+            return Ok(official);
+        }
+    }
+    let store = shared.app.store_paths();
+    let mut on = |text: &str| {
+        let _ = proxy.send_event(UserEvent::HorizonInstall(json!({
+            "type": "hzprepare", "folder": folder, "kind": "message", "note": text,
+        })));
+    };
+    on(&format!("Minecraft {version} is not on this PC yet — fetching it"));
+    let stopped = || shared.install_cancel.load(Ordering::SeqCst);
+    shared
+        .app
+        .install_version(version, &mut on, Some(&stopped))
+        .map(|_| store.shared)
+        .map_err(|error| short(&error))
 }
 
 /// One preparer event as the page wants it.

@@ -1,6 +1,6 @@
 [package]
 name = "mcl"
-version = "0.5.0"
+version = "0.6.0"
 edition = "2021"
 description = "A Minecraft Java launcher written in Rust, with isolated instances and offline accounts"
 license = "MIT"

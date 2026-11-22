@@ -190,6 +190,11 @@ impl App {
             .unwrap_or_else(|poisoned| poisoned.into_inner())
     }
 
+    /// The store the next launch will use. Public so a front end can put game
+    /// files where the launch will look for them.
+    pub fn store_paths(&self) -> Paths {
+        self.effective_paths()
+    }
     /// The store the next launch will use: `--shared` when one was given,
     /// otherwise whatever `settings.json` says now. `self.paths` stays the
     /// open-time snapshot, so a store moved in the window applies to launches
@@ -652,6 +657,53 @@ impl App {
             extra_jvm,
         }
         .prepare()
+    }
+
+    /// Make sure one Minecraft version is fully present in the data store.
+    ///
+    /// The Horizon front end needs real game files on disk before its preparer
+    /// can convert them, and nobody should have to install Minecraft by hand
+    /// first. Returns how many files were missing; 0 means it was already
+    /// complete and nothing was downloaded.
+    pub fn install_version(
+        &self,
+        id: &str,
+        on: &mut dyn FnMut(&str),
+        stopped: Option<&(dyn Fn() -> bool + Sync)>,
+    ) -> Result<usize> {
+        let halt = |on: &mut dyn FnMut(&str)| -> Result<()> {
+            match stopped {
+                Some(check) if check() => {
+                    on("Cancelling");
+                    bail!("install cancelled")
+                }
+                _ => Ok(()),
+            }
+        };
+
+        let paths = self.effective_paths();
+        on(&format!("Reading the Minecraft manifest for {id}"));
+        halt(&mut *on)?;
+        let dl = Downloader::new();
+        let manifest = manifest::load(&paths, &dl, false)?;
+        on(&format!("Resolving {id}"));
+        halt(&mut *on)?;
+        let resolved = version::resolve(&paths, &dl, &manifest, id)?;
+        let features = Features::new();
+        let plan = install::plan(&paths, &resolved, &features);
+
+        let missing = install::missing_files(&paths, &plan);
+        if missing.is_empty() {
+            on(&format!("{id} is already in the data store"));
+            return Ok(0);
+        }
+        let total = missing.len();
+        on(&format!("Downloading {total} files for {id}"));
+        halt(&mut *on)?;
+        let mp = MultiProgress::with_draw_target(ProgressDrawTarget::hidden());
+        install::install(&paths, &dl, &resolved, &plan, &mp, stopped)?;
+        halt(&mut *on)?;
+        Ok(total)
     }
 
     /// Record that a dive happened. Errors are returned, not swallowed: a

@@ -37,16 +37,22 @@ Where the game comes from:
 
 - `horizon-prepare` **never downloads Minecraft.** It converts an existing
   install into Horizon's resources.
-- The folder is found automatically: `dirs::data_dir()\.minecraft`, i.e.
-  `%APPDATA%\.minecraft`. There is no setting and no path to type.
-- If that folder is absent the page stops with *"no official Minecraft folder
-  found; Horizon needs one to import from"*.
+- The official folder is found automatically: `dirs::data_dir()\.minecraft`,
+  i.e. `%APPDATA%\.minecraft`. If it already holds the pinned version, that copy
+  is used and nothing is downloaded.
+- If it does not, the launcher downloads the pinned version into its own store
+  and hands *that* folder to the preparer. There is no path to type and no
+  separate Minecraft install to perform.
 - The one file it will not fetch itself — the pinned `server.jar` — is downloaded
   from `piston-data.mojang.com` and checked against `server_sha1` before use.
 
-Horizon's own README says the same thing: install 26.3 and start it once. So a
-machine that has never run 26.3 cannot prepare, no matter which launcher put the
-files there.
+Horizon's own README says the same thing: the game must be on disk before the
+preparer will run. If the official launcher has already installed the pinned
+version, that copy is reused. If it has not, the launcher downloads the pinned
+client jar, libraries and assets into its own shared store at
+`<root>/shared/versions/<version>/<version>.jar`, and the preparer reads from
+there instead. A machine that has never run vanilla Minecraft therefore still
+prepares cleanly in one click.
 
 ## Layout
 

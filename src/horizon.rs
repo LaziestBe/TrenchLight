@@ -1088,7 +1088,7 @@ pub fn prepare(
     }
     if !minecraft_dir.is_dir() {
         bail!(
-            "{} is not a Minecraft folder; point Settings at your official .minecraft",
+            "{} is not a Minecraft folder, so there is nothing to convert",
             minecraft_dir.display()
         );
     }

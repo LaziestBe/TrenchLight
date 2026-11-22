@@ -93,6 +93,7 @@ h1{margin:0;font:800 72px/.95 'Poppins',sans-serif;letter-spacing:-.02em;color:v
 .play:hover{filter:brightness(1.06);box-shadow:0 0 30px rgba(58,201,207,.5)}
 .play:active{transform:translateY(1px)}
 .play:disabled{filter:saturate(.4) brightness(.8);box-shadow:none}
+.play.off{filter:saturate(.4) brightness(.8);box-shadow:none}
 .pick{
   display:inline-flex;align-items:center;gap:8px;height:30px;padding:0 11px;min-width:120px;
   border:1px solid var(--hair);border-radius:999px;
@@ -240,6 +241,12 @@ h1{margin:0;font:800 72px/.95 'Poppins',sans-serif;letter-spacing:-.02em;color:v
 .ghost{height:32px;padding:0 14px;border:1px solid var(--hair);border-radius:999px;
   font:600 12px/1 'Inter',sans-serif;color:var(--ice-300)}
 .ghost:hover{border-color:var(--teal-500);color:var(--ice-100)}
+/* A disabled control that still looks lit is a lie: it cannot be clicked and
+   Chromium sends no event, so it must also read as unavailable. */
+.ghost:disabled{opacity:.38;border-color:var(--hair);color:var(--ice-500)}
+.ghost:disabled:hover{border-color:var(--hair);color:var(--ice-500)}
+.danger:disabled{opacity:.38}
+.danger:disabled:hover{background:none;border-color:#6B3226;color:var(--ice-100)}
 
 /* ── dialogs (new installation, confirm) ────────────────── */
 .sheet{position:absolute;inset:0;background:rgba(3,10,16,.72);backdrop-filter:blur(3px);
@@ -255,6 +262,7 @@ h1{margin:0;font:800 72px/.95 'Poppins',sans-serif;letter-spacing:-.02em;color:v
 .dlg.small{width:404px}
 .dlg h2{margin:0;font:700 22px/1.2 'Poppins',sans-serif;color:var(--ice-100)}
 .dlg p{margin:9px 0 0;font:400 12.5px/1.55 'Inter',sans-serif;color:var(--ice-300)}
+.dlg p.why{color:var(--teal-200)}
 .fld{display:block;margin-top:14px}
 .fld span{display:block;font:600 9.5px/1 'Inter',sans-serif;letter-spacing:.12em;
   text-transform:uppercase;color:var(--teal-200)}
@@ -263,6 +271,10 @@ h1{margin:0;font:800 72px/.95 'Poppins',sans-serif;letter-spacing:-.02em;color:v
   background:#0E2A36;border:1px solid var(--hair);color:var(--ice-100);
   font:400 13px/1 'Inter',sans-serif;outline:none;
 }
+/* The number spinner eats ~18px of a narrow field and clips its placeholder. */
+.fld input[type=number]{-moz-appearance:textfield;appearance:textfield}
+.fld input[type=number]::-webkit-outer-spin-button,
+.fld input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .fld input:focus,.fld select:focus{border-color:var(--teal-500);background:#0B2431}
 .fld input::placeholder{color:var(--ice-700)}
 .pathin{display:flex;align-items:center;gap:8px;margin-top:6px}
@@ -298,6 +310,7 @@ h1{margin:0;font:800 72px/.95 'Poppins',sans-serif;letter-spacing:-.02em;color:v
 }
 .pri:hover{filter:brightness(1.07)}
 .pri:disabled{opacity:.45;filter:none;box-shadow:none;cursor:default}
+.pri.off{opacity:.45;filter:none;box-shadow:none;cursor:default}
 .danger{height:32px;padding:0 14px;border:1px solid #6B3226;border-radius:999px;
   font:600 12px/1 'Inter',sans-serif;color:#F0A38D}
 .danger:hover{background:#3A1A14;border-color:#8A4433;color:#FFC3B2}
@@ -446,7 +459,7 @@ h1{margin:0;font:800 72px/.95 'Poppins',sans-serif;letter-spacing:-.02em;color:v
 .set::-webkit-scrollbar{width:7px}
 .set::-webkit-scrollbar-thumb{border-radius:99px;background:#1B3A46}
 .set::-webkit-scrollbar-track{background:transparent}
-.setgrid{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:12px}
+.setgrid{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:12px;padding-bottom:34px}
 .set .sect{padding:11px 15px 12px}
 .set .fld{margin-top:10px}
 .set .hint{margin-top:6px;font-size:11px;line-height:1.45}
@@ -659,7 +672,7 @@ window.addEventListener("error", function (e) {
       <div class="t" id="store-path">assets and libraries</div>
       <button id="store-btn">Open folder</button>
     </div>
-    <div class="foot" id="foot">Launcher 0.4.2 · Unofficial</div>
+    <div class="foot" id="foot">Launcher {{VERSION}} · Unofficial</div>
   </aside>
 
   </div><!-- /page-play -->
@@ -696,7 +709,7 @@ window.addEventListener("error", function (e) {
         <div class="ov">
           <div class="kv" id="i-kv"></div>
           <div>
-            <div class="sect">
+            <div class="sect" id="i-only">
               <h3>This installation only</h3>
               <div class="body">
                 <div class="frow">
@@ -742,7 +755,7 @@ window.addEventListener("error", function (e) {
         <svg width="11" height="11" viewBox="0 0 11 11" stroke="currentColor" stroke-width="1.6"><path d="M5.5 1.5v8M1.5 5.5h8"/></svg>
         New installation
       </button>
-      <div class="foot" id="foot2">Launcher 0.4.2 · Unofficial</div>
+      <div class="foot" id="foot2">Launcher {{VERSION}} · Unofficial</div>
     </aside>
   </div>
 
@@ -763,6 +776,7 @@ window.addEventListener("error", function (e) {
               <button class="ghost sm" id="hz-refresh" type="button">Refresh</button>
             </div>
             <div class="list" id="hz-builds"></div>
+            <div class="hint" id="hz-hint">Set up converts a build into playable resources, and downloads the Minecraft version it pins first if this PC does not have it. The first build takes about ten minutes; later builds reuse those files.</div>
           </div>
         </div>
         <div class="sect">
@@ -821,7 +835,7 @@ window.addEventListener("error", function (e) {
       </div>
       <div class="setfoot">
         <span class="chip" id="rm-count">&mdash;</span>
-        <span class="muted" style="margin-left:auto;font-size:11px">Edit the ROADMAP list in <code>ui/menu.html</code></span>
+        <span class="muted" style="margin-left:auto;font-size:11px">Kept by hand, shipped when it is true.</span>
       </div>
     </div>
   </div>
@@ -870,7 +884,7 @@ one per line"></textarea></label>
         <button class="pri" id="set-save">Save settings</button>
         <button class="ghost" id="set-reload">Reload</button>
         <span class="errline" id="set-err"></span>
-        <span class="chip" style="margin-left:auto">Saved to settings.json</span>
+        <span class="chip" id="set-state" style="margin-left:auto">No changes yet</span>
       </div>
     </div>
   </div>
@@ -954,7 +968,7 @@ one per line"></textarea></label>
 
   <div class="dlg" id="dlg" role="dialog" aria-label="New installation">
     <h2>New installation</h2>
-    <p>A folder of its own: mods, worlds and options stay inside it.</p>
+    <p id="dlg-sub">A folder of its own: mods, worlds and options stay inside it.</p>
     <label class="fld"><span>Name</span>
       <input id="new-name" maxlength="64" spellcheck="false" autocomplete="off"></label>
     <label class="fld"><span>Minecraft version</span>
@@ -989,6 +1003,15 @@ one per line"></textarea></label>
 <script>
 const $ = (id) => document.getElementById(id);
 const send = (msg) => { try { window.ipc.postMessage(JSON.stringify(msg)); } catch (e) {} };
+
+/* A script fault in this page would otherwise be invisible: the window has no
+   console. Send it to the launcher log so a broken build leaves a trail. */
+window.onerror = (message, source, line, column) => {
+  send({ cmd: "jserror", v: `${message} (${source}:${line}:${column})` });
+};
+window.addEventListener("unhandledrejection", (e) => {
+  send({ cmd: "jserror", v: "unhandled rejection: " + (e.reason && e.reason.message || e.reason) });
+});
 
 const DEPTHS = [0, 120, 340, 900, 1600, 2400, 3400, 4600];
 const state = { user: "Player", instances: [], java: [], selected: null, launching: false, spawning: false,
@@ -1030,7 +1053,14 @@ function render() {
     `<span class="tag${i === 0 ? "" : " dim"}">${i === 0 ? "<i></i>" : ""}${esc(t)}</span>`).join("");
 
   $("pick-label").textContent = inst ? inst.version : "no install";
-  $("play").disabled = !inst || inst.missing || state.launching;
+  // A disabled button is silent: Chromium dispatches no event at all, so the
+  // user clicks Play and nothing anywhere responds. Keep it clickable and
+  // explain instead; only a running launch really disables it.
+  const canPlay = !!inst && !inst.missing;
+  $("play").disabled = state.launching;
+  $("play").classList.toggle("off", !canPlay);
+  $("play").title = canPlay ? "Play " + inst.name
+    : (inst ? "That installation's folder is gone." : "No installation yet \u2014 click to make one.");
 
   // rail — the same list in two places: the Play screen and the Instances screen
   const rows = state.instances.map((i, n) => {
@@ -1104,6 +1134,7 @@ const ROADMAP = {
     { t: "Crash detail", d: "Show the crash report, copy it, open its folder." },
   ],
   done: [
+    { t: "One-click 26.3", d: "Set up fetches the pinned Minecraft version when the PC has none, then converts it." },
     { t: "Horizon front end", d: "Install, prepare, play, dock, worlds, offline name." },
     { t: "Launcher icon and version block", d: "Recognisable in Explorer and on the taskbar." },
   ],
@@ -1147,14 +1178,21 @@ function depthOf(i) {
 /* ── news ───────────────────────────────────────────────── */
 const NEWS = [
   {
+    date: "Nov 21 \u00b7 Release", title: "Launcher 0.6.0",
+    by: "By the Trenchlight team \u00b7 1 min read",
+    body: [
+      ["p", "Horizon is one click from a machine that has never had Minecraft on it. Set up now fetches the exact version the build pins, then converts it. If the official launcher already has that version, it is reused and nothing is downloaded."],
+      ["p", "The whole top strip of the window drags it, not just the bar. Play on an empty list explains itself instead of doing nothing, and a disabled button now looks disabled."],
+      ["p", "Smaller fixes: the version field in the create dialog fills itself in, news paragraphs with `code` no longer break apart, and the settings footer says whether your changes are saved."]
+    ]
+  },
+  {
     date: "Nov 18 \u00b7 Feature", title: "Tidepool profiles are here",
     by: "By the Trenchlight team \u00b7 1 min read",
     body: [
       ["p", "Profiles group installations and switch between loadouts without touching a folder. Each profile keeps its own version, mods and settings, and shares one store of libraries and assets underneath."],
       ["p", "Nothing is copied twice. Ten installations cost little more than one."],
-      ["p", "Memory is set per profile. The default is"],
-      ["code", "-Xmx4096M"],
-      ["p", "and can be changed in Settings or on the instance sheet."],
+      ["p", "Memory is set per profile. The default is `-Xmx4096M` and can be changed in Settings or on the instance sheet."],
       ["note", "Every profile is a plain folder under the launcher root. Nothing here needs an account, and nothing leaves this PC."]
     ]
   },
@@ -1187,12 +1225,15 @@ function renderNews() {
     el.onclick = () => { state.news = +el.dataset.news; renderNews(); };
   });
   const n = NEWS[state.news] || NEWS[0];
+  // `backticks` inside a paragraph become an inline code chip, so a sentence
+  // that mentions a flag does not get chopped into three separate blocks.
+  const inline = (t) => esc(t).replace(/`([^`]+)`/g, "<code>$1</code>");
   $("nart").innerHTML = `<div class="kick">${esc(n.date)}</div>
     <h2>${esc(n.title)}</h2>
     <div class="by">${esc(n.by)}</div>
-    ${n.body.map(([k, v]) => k === "p" ? `<p>${esc(v)}</p>`
+    ${n.body.map(([k, v]) => k === "p" ? `<p>${inline(v)}</p>`
       : k === "code" ? `<p><code>${esc(v)}</code></p>`
-      : `<div class="note2">${esc(v)}</div>`).join("")}`;
+      : `<div class="note2">${inline(v)}</div>`).join("")}`;
 }
 
 /* ── instance detail ────────────────────────────────────── */
@@ -1215,8 +1256,14 @@ function renderInst() {
     ? (inst.missing ? "Folder not found \u2014 nothing to open"
       : `${inst.version}${inst.installed ? "" : " \u00b7 not downloaded yet"} \u00b7 ${inst.mods} mod${inst.mods === 1 ? "" : "s"} \u00b7 ${inst.worlds} world${inst.worlds === 1 ? "" : "s"}`)
     : "Nothing selected";
-  $("i-play").disabled = !inst || inst.missing || state.launching;
+  $("i-play").disabled = state.launching;
+  $("i-play").classList.toggle("off", !inst || inst.missing);
+  $("i-play").title = (inst && !inst.missing) ? "Play " + inst.name
+    : (inst ? "That installation's folder is gone." : "No installation yet.");
   $("i-folder").disabled = $("i-trash").disabled = !inst;
+  // Per-instance overrides mean nothing without an instance: show the panel
+  // only when there is something for it to write to.
+  $("i-only").style.display = inst ? "" : "none";
 
   $("i-tiles").innerHTML = inst ? `
     <div class="tile"><div class="k">On disk</div><div class="v">${esc(inst.size)}</div><div class="u">${esc(inst.bytes ? humanish(inst.bytes) : "empty")}</div></div>
@@ -1406,7 +1453,7 @@ function renderHorizon() {
             <button class="ghost" data-hzplay="${esc(b.folder)}" type="button">Play</button>`;
         } else {
           tail = `<span class="chip dim">Installed</span>
-            <button class="ghost" data-hzprepare="${esc(b.folder)}" type="button">Prepare</button>`;
+            <button class="ghost" data-hzprepare="${esc(b.folder)}" type="button">Set up</button>`;
         }
         return `<div class="hzrow">
           <div class="hzwhen">${esc(b.date || "\u2014")}</div>
@@ -1436,7 +1483,7 @@ function renderHorizon() {
   if (h.installError) {
     banner.hidden = false;
     banner.className = "banner bad";
-    banner.innerHTML = `<b>${h.preparingError ? "Prepare failed" : "Install failed"}</b>${esc(h.installError)}`;
+    banner.innerHTML = `<b>${h.preparingError ? "Set up failed" : "Install failed"}</b>${esc(h.installError)}`;
   } else if (h.error) {
     banner.hidden = false;
     banner.className = "banner bad";
@@ -1477,7 +1524,7 @@ function renderHorizon() {
   if (editName) editName.onclick = () => { go("settings"); setTimeout(() => $("set-user").focus(), 40); };
   $("hz-installed").innerHTML = installed.size
     ? [...installed].map(f =>
-        `<div class="mono-row" title="${esc(f)}"><span>${esc(f)}</span><b>${ready.has(f) ? "ready" : "needs prepare"}</b></div>`
+        `<div class="mono-row" title="${esc(f)}"><span>${esc(f)}</span><b>${ready.has(f) ? "ready" : "needs set up"}</b></div>`
       ).join("")
     : `<div class="mono-row dim"><span>Nothing installed yet</span></div>`;
 
@@ -1657,7 +1704,11 @@ function renderSkin() {
 /* ── actions ────────────────────────────────────────────── */
 function start() {
   const inst = current();
-  if (!inst || inst.missing || state.launching) return;
+  if (state.launching) return;
+  // A Play that does nothing is the worst kind of button. With no
+  // installation there is nothing to launch, so say so and offer the fix.
+  if (!inst) { openCreate("No installation yet \u2014 make one to play."); return; }
+  if (inst.missing) { toast("That installation's folder is gone."); return; }
   state.launching = true;
   state.spawning = true;
   $("lname").textContent = "· " + inst.name;
@@ -1719,6 +1770,11 @@ $("set-save").onclick = () => {
   send({ cmd: "save_settings", patch: settingsPatch() });
 };
 $("set-reload").onclick = () => send({ cmd: "reload_settings" });
+// The chip tells the truth: it says "saved" only after a save came back clean.
+$("page-settings").addEventListener("input", (e) => {
+  if (e.target.closest(".setfoot")) return;
+  $("set-state").textContent = "Unsaved changes";
+});
 $("set-browse").onclick = () => send({ cmd: "pick", what: "shared" });
 $("set-open-root").onclick = () => send({ cmd: "open", what: "root" });
 $("set-open-config").onclick = () => send({ cmd: "open", what: "config" });
@@ -1791,9 +1847,15 @@ document.querySelectorAll(".nav button").forEach(b => {
 });
 
 /* drag the frameless window */
-$("bar").addEventListener("mousedown", (e) => {
+/* The whole strip across the top moves the window, not just the 26px of bar
+   the eye reads as a title: the top edge is where a hand goes first, and a
+   dead 15px band there reads as "this window cannot be dragged". Controls
+   keep their clicks; everything else in the strip is a grip. */
+const GRIP = 58;
+document.addEventListener("mousedown", (e) => {
   if (e.button !== 0) return;
-  if (e.target.closest("button")) return;
+  if (e.clientY > GRIP) return;
+  if (e.target.closest("button, input, select, textarea, a, label, .chk")) return;
   send({ cmd: "drag" });
 });
 
@@ -1835,13 +1897,19 @@ function note(text, soft) {
   el.classList.toggle("soft", !!soft);
 }
 
-function openCreate() {
+function openCreate(msg) {
   const inst = current();
   const version = inst ? inst.version : (state.versions[0] || "");
   $("new-ver").value = version;
   state.autoName = freeName(version);
   $("new-name").value = state.autoName;
+  // Say why the dialog opened, in the line the eye already reads, instead of a
+  // note that hintCreate() immediately overwrites.
+  $("dlg-sub").textContent = msg || "A folder of its own: mods, worlds and options stay inside it.";
+  $("dlg-sub").classList.toggle("why", !!msg);
   note("");
+  // A fresh store knows no versions: ask Mojang, so the field is never blank.
+  if (!state.versions.length) send({ cmd: "versions" });
   $("new-from").innerHTML = [`<option value="">Blank &mdash; nothing copied</option>`]
     .concat(state.instances.map(i =>
       `<option value="${esc(i.name)}">Copy of ${esc(i.name)}</option>`))
@@ -2127,11 +2195,32 @@ window.trench = {
         return;
       }
       if (ev.where === "instance") { $("i-save").disabled = false; $("i-save").textContent = "Save"; }
-      if (ev.where === "settings") { $("set-save").disabled = false; $("set-save").textContent = "Save settings"; }
+      if (ev.where === "settings") {
+        $("set-save").disabled = false;
+        $("set-save").textContent = "Save settings";
+        $("set-state").textContent = "Saved to settings.json";
+      }
       if (ev.where === "skin") { $("skin-pick").disabled = false; $("skin-pick").textContent = "Choose skin…"; }
       if (ev.payload) hydrate(ev.payload);
       if (ev.detail) { state.detail = ev.detail; renderInst(); }
       if (ev.toast) toast(ev.toast);
+    } else if (ev.type === "versions") {
+      // Suggestions for the create dialog, straight from Mojang's list. The
+      // first answer also fills an empty version field, so a fresh store never
+      // opens the dialog with nothing to type.
+      if (ev.list && ev.list.length) {
+        state.versions = ev.list.slice();
+        if (ev.latest && !state.versions.includes(ev.latest)) state.versions.unshift(ev.latest);
+        if ($("dlg").classList.contains("on") && !$("new-ver").value.trim() && ev.latest) {
+          $("new-ver").value = ev.latest;
+          if (!state.autoName || $("new-name").value === state.autoName) {
+            state.autoName = freeName(ev.latest);
+            $("new-name").value = state.autoName;
+          }
+        }
+        hintCreate();
+        $("ver-list").innerHTML = state.versions.map(v => `<option value="${esc(v)}">`).join("");
+      }
     } else if (ev.type === "error") {
       state.spawning = false;
       state.launching = false;
